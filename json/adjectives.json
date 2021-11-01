@@ -1,6 +1,6 @@
 {
   "format": "CSV",
-  "output_filename": "~/deephaven-core/data/adjectives.csv",
+  "output_filename": "adjectives.csv",
   "columns" : {
     "adjective_id" :
     {

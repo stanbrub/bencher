@@ -82,7 +82,14 @@ public class DataGen {
             throw new IllegalArgumentException("no output_filename provided");
         }
 
-        filename = filename.replaceFirst("^~", System.getProperty("user.home"));
+        if (filename.startsWith("~" + File.separator)) {
+            filename = filename.replaceFirst("^~", System.getProperty("user.home"));
+        } else if (!filename.startsWith(File.separator)) {
+            final String dataPrefixPath = System.getProperty("data.prefix.path");
+            if (dataPrefixPath != null) {
+                filename = dataPrefixPath + File.separator + filename;
+            }
+        }
         FileWriter w = new FileWriter(filename);
         return w;
     }

@@ -1,6 +1,6 @@
 {
   "format": "CSV",
-  "output_filename": "~/deephaven-core/data/join.csv",
+  "output_filename": "join.csv",
   "columns" : {
     "Values" :
     {
@@ -9,7 +9,7 @@
       "order": "Increasing",
       "seed": "8675309",
       "range_start": "1",
-      "range_stop": "10000000",
+      "range_stop": "1000000",
       "percent_null": "0"
     },
     "adjective_id" :

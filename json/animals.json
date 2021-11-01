@@ -1,6 +1,6 @@
 {
   "format": "CSV",
-  "output_filename": "~/deephaven-core/data/animals.csv",
+  "output_filename": "animals.csv",
   "columns" : {
     "animal_id" :
     {

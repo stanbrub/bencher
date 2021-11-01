@@ -14,6 +14,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -51,7 +52,7 @@ public class BencherApp {
 
     static Session getSession() {
 
-        String target = "localhost:10000";
+        String target = System.getProperty("dh.endpoint", "localhost:10000");
 
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
@@ -145,7 +146,7 @@ public class BencherApp {
         }
     }
 
-    private static ArrayList<Object> getBenchmarks(String inputFileName) throws FileNotFoundException, IOException, ParseException {
+    private static ArrayList<Object> getBenchmarks(String inputFileName) throws IOException, ParseException {
 
         JSONObject jsonMap = (JSONObject) new JSONParser().parse(new FileReader(inputFileName));
         Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
@@ -154,13 +155,22 @@ public class BencherApp {
         return benchmarks;
     }
 
+    private static final String JSON_PREFIX_PATH = System.getProperty("json.prefix.path");
+
+    private static String relJsonFn(final String fn) {
+        if (!fn.startsWith(File.separator) && JSON_PREFIX_PATH != null) {
+            return JSON_PREFIX_PATH + File.separator + fn;
+        }
+        return fn;
+    }
+
     public static void main(String[] args) {
 
         String inputFileName;
         if (args.length < 1) {
-            inputFileName = "joiner-bench.json";
+            inputFileName = "json" + File.separator + "joiner-bench.json";
         } else {
-            inputFileName = args[0];
+            inputFileName = relJsonFn(args[0]);
         }
 
         // open and read the definition file to an array of definition objects
@@ -185,7 +195,11 @@ public class BencherApp {
 
             String title = (String) benchmarkDefinition.get("title");
             String benchFile = (String) benchmarkDefinition.get("benchmark_file");
+            benchFile = relJsonFn(benchFile);
             ArrayList<String> generatorFiles = (ArrayList<String>) benchmarkDefinition.get("generator_files");
+            for (int i = 0; i < generatorFiles.size(); ++i) {
+                generatorFiles.set(i, relJsonFn(generatorFiles.get(i)));
+            }
 
             System.out.printf("starting benchmark: \"%s\"\n", title);
 

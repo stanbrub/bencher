@@ -1,6 +1,6 @@
 {
   "format": "CSV",
-  "output_filename": "~/deephaven-core/data/join.csv",
+  "output_filename": "join.csv",
   "columns" : {
     "Values" :
     {

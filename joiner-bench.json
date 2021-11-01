@@ -1,0 +1,9 @@
+{
+  "benchmarks": [
+    {
+      "title": "Join 1m animals and adjectives",
+      "generator_files": [ "animals.json", "adjectives.json", "join-1m.json" ],
+      "benchmark_file": "animals-joiner.json",
+    }
+  ]
+}

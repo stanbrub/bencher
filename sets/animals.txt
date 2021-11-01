@@ -1,0 +1,250 @@
+monkey
+ray
+owl
+zebra
+dolphin
+walkingstick
+wombat
+dromedary
+rhinoceros
+bream
+quoll
+walrus
+kingfisher
+seahorse
+clam
+fish
+elephant
+skink
+magpie
+angelfish
+possum
+shrimp
+puffer
+hippo
+swordfish
+koala
+coyote
+beetle
+narwhal
+lace bug
+bison
+fin whale
+cougar
+jay
+flying squirrel
+earthworm
+snake
+reindeer
+centipede
+parrot
+tick
+squid
+panda
+slipper lobster
+barnacle
+badger
+starfish
+coral
+moose
+kangaroo
+seagull
+goat
+worm
+quail
+lemming
+gila monster
+horse
+llama
+toad
+grasshopper
+sowbug
+tree frog
+barracuda
+firefly
+goshawk
+salmon
+armadillo
+meerkat
+tasmanian devil
+vinegaroon
+dove
+ox
+raven
+snapper
+coypu
+termite
+cocoon
+cormorant
+gorilla
+jellyfish
+panther
+anemone
+hummingbird
+green anole
+dall’s porpoise
+snow leopard
+land crab
+pike
+katydid
+viper
+bull
+dog
+marlin
+bluefish
+nematode
+camel
+crow
+lamb
+hermit crab
+dragonfly
+iguana
+xerus
+goldfish
+pig
+turtle
+crab
+rock lobster
+sheep
+giraffe
+snail
+bighorn sheep
+hen
+pangolin
+clownfish
+tuna
+vulture
+caracal
+bear
+crocodile
+blue tang
+moth
+scampi
+backswimmer
+catfish
+bat
+tree kangaroo
+woodlouse
+mantis shrimp
+earwig
+duck
+oyster
+eland
+wallaby
+opossum
+sugar glider
+bactrian camel
+caiman
+octopus
+agouti
+scallop
+quokka
+cheetah
+turkey
+newt
+fox
+dunnart
+angler
+fossa
+cod
+caridea
+betta
+millipede
+ant
+numbat
+black widow spider
+lizard
+perch
+trout
+bass
+wasp
+goose
+prawn
+scorpion
+yabby
+rattlesnake
+gopher
+lovebird
+jackrabbit
+sparrow
+hare
+antelope
+salamander
+lobster
+cuttlefish
+scarab beetle
+adder
+tadpole
+taipan
+fly
+long-nosed bat
+whale
+alligator
+cow
+ostrich
+penguin
+macaw
+sea lion
+deer
+binturong
+boa
+lemur
+rabbit
+codfish
+bilby
+cape buffalo
+mite
+gazelle
+caterpillar
+sockeye
+bullfrog
+bandicoot
+butterfly
+grey mullet
+pigeon
+sawfish
+ladybug
+beaver
+mackerel
+donkey
+haddock
+python
+leopard
+mussel
+dalmatian
+buffalo
+nightingale
+tortoise
+eagle
+horsefly
+chipmunk
+seal
+slug
+maggot
+harp seal
+peacock
+crane
+coati
+capybara
+hedgehog
+eel
+kangaroo rat
+chicken
+chameleon
+cricket
+swallow
+crayfish
+stingray
+bee
+sloth
+cockroach
+spider
+cobra
+woodpecker
+krill
+rooster
+piranha
+skunk
+pelican
+gecko
+platypus

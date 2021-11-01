@@ -1,0 +1,34 @@
+{
+  "statements" : [
+    {
+      "title" : "imports",
+      "text" : "from deephaven.TableTools import readCsv",
+      "timed" : 0
+    },
+
+    {
+      "title" : "load animals",
+      "text" : "animals = readCsv(\"/data/animals.csv\")",
+      "timed" : 1
+    },
+
+    {
+      "title" : "load adjectives",
+      "text" : "adjectives = readCsv(\"/data/adjectives.csv\")",
+      "timed" : 1
+    },
+
+    {
+      "title" : "load relation table",
+      "text" : "relation = readCsv(\"/data/join.csv\")",
+      "timed" : 1
+    },
+
+    {
+      "title" : "perform join",
+      "text" : "result = relation.join(adjectives, \"adjective_id\").join(animals, \"animal_id\").view(\"Values\", \"adjective_name\", \"animal_name\")",
+      "timed" : 1
+    }
+
+  ]
+}

@@ -1,0 +1,28 @@
+plugins {
+    id 'java'
+}
+
+group 'io.deephaven'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+    implementation 'com.googlecode.json-simple:json-simple:1.1.1'
+    implementation 'com.google.guava:guava:31.0.1-jre'
+
+    // https://search.maven.org/search?q=g:io.deephaven
+    implementation 'io.deephaven:deephaven-client-session:0.5.0'
+
+    implementation project(':datagen')
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+}
+
+test {
+    useJUnitPlatform()
+}

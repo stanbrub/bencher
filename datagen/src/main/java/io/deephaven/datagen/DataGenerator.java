@@ -114,13 +114,13 @@ public abstract class DataGenerator {
 
         switch (columnType) {
             case DOUBLE:
-                return Types.required(PrimitiveType.PrimitiveTypeName.DOUBLE).named(columnName);
+                return Types.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(columnName);
             case INT32:
-                return Types.required(PrimitiveType.PrimitiveTypeName.INT32).named(columnName);
+                return Types.optional(PrimitiveType.PrimitiveTypeName.INT32).named(columnName);
             case INT64:
-                return Types.required(PrimitiveType.PrimitiveTypeName.INT64).named(columnName);
+                return Types.optional(PrimitiveType.PrimitiveTypeName.INT64).named(columnName);
             case STRING:
-                return Types.required(PrimitiveType.PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.StringLogicalTypeAnnotation.stringType()).named(columnName);
+                return Types.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.StringLogicalTypeAnnotation.stringType()).named(columnName);
             default:
                 throw new IllegalArgumentException("need to add support for ColumnType." + columnType);
         }

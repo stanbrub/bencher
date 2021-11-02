@@ -12,15 +12,16 @@ import org.apache.parquet.schema.PrimitiveType;
 import java.util.HashMap;
 import java.util.List;
 
-public class CustomWriterSupport extends WriteSupport<List<Object>> {
-    MessageType schema;
+public class CustomWriterSupport extends WriteSupport<Object[]> {
+    final MessageType schema;
     RecordConsumer recordConsumer;
-    List<ColumnDescriptor> cols;
+    final List<ColumnDescriptor> cols;
+    final int ncols;
 
-    // TODO: support specifying encodings and compression
     CustomWriterSupport(MessageType schema) {
         this.schema = schema;
         this.cols = schema.getColumns();
+        this.ncols = cols.size();
     }
 
     @Override
@@ -33,17 +34,13 @@ public class CustomWriterSupport extends WriteSupport<List<Object>> {
         this.recordConsumer = recordConsumer;
     }
 
-    public void write(List<Object> values) {
-        if (values.size() != cols.size()) {
-            throw new ParquetEncodingException("Invalid input data. Expecting " +
-                    cols.size() + " columns. Input had " + values.size() + " columns (" + cols + ") : " + values);
-        }
-
+    public void write(Object[] buffer) {
         recordConsumer.startMessage();
-        for (int i = 0; i < cols.size(); ++i) {
-            final Object val = values.get(i);
+        for (int i = 0; i < ncols; ++i) {
+            final String field = cols.get(i).getPath()[0];
+            final Object val = buffer[i];
             if (val != null) {
-                recordConsumer.startField(cols.get(i).getPath()[0], i);
+                recordConsumer.startField(field, i);
                 PrimitiveType.PrimitiveTypeName ptn = cols.get(i).getPrimitiveType().getPrimitiveTypeName();
                 switch (ptn) {
                     case BOOLEAN:
@@ -65,15 +62,18 @@ public class CustomWriterSupport extends WriteSupport<List<Object>> {
                         throw new ParquetEncodingException(
                                 "Unsupported column type: " + ptn);
                 }
-                recordConsumer.endField(cols.get(i).getPath()[0], i);
+                recordConsumer.endField(field, i);
             }
         }
         recordConsumer.endMessage();
     }
 
+    public void flush() {
+        recordConsumer.flush();
+    }
 
     private Binary stringToBinary(String value) {
-        return Binary.fromString(value.toString());
+        return Binary.fromString(value);
     }
 }
 

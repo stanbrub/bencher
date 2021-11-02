@@ -8,15 +8,15 @@ import org.apache.parquet.schema.MessageType;
 import java.io.IOException;
 import java.util.List;
 
-public class CustomParquetWriter extends ParquetWriter<List<Object>> {
+public class CustomParquetWriter extends ParquetWriter<Object[]> {
 
     public CustomParquetWriter(
             Path file,
-            MessageType schema,
+            CustomWriterSupport customWriterSupport,
             boolean enableDictionary,
             CompressionCodecName codecName
     ) throws IOException {
-        super(file, new CustomWriterSupport(schema), codecName, DEFAULT_BLOCK_SIZE, DEFAULT_PAGE_SIZE, enableDictionary, false);
+        super(file, customWriterSupport, codecName, DEFAULT_BLOCK_SIZE, DEFAULT_PAGE_SIZE, DEFAULT_PAGE_SIZE, enableDictionary, true);
     }
 }
 

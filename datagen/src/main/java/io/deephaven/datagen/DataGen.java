@@ -5,10 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 
 // https://github.com/fangyidong/json-simple
 import org.apache.parquet.schema.LogicalTypeAnnotation;
@@ -34,11 +31,11 @@ public class DataGen {
     /***
      * Construct an io.deephaven.datagen.CustomParquetWriter given the MessageType schema that we're passed.
      *
-     * @param schema    MessageType with the schema we'll be writing
+     * @param customWriterSupport    CustomWriterSupport for the schema we will be writing.
      * @return          io.deephaven.datagen.CustomParquetWriter initialized with a random file name, ready to write
      * @throws IOException
      */
-    private static CustomParquetWriter getParquetWriter(final String outputFilePath, MessageType schema) throws IOException {
+    private static CustomParquetWriter getParquetWriter(final String outputFilePath, CustomWriterSupport customWriterSupport) throws IOException {
 
         File outputParquetFile = new File(outputFilePath);
         if (outputParquetFile.exists() && OVERWRITE) {
@@ -46,7 +43,7 @@ public class DataGen {
         }
         Path path = new Path(outputParquetFile.toURI().toString());
         return new CustomParquetWriter(
-                path, schema, false, CompressionCodecName.ZSTD
+                path, customWriterSupport, false, CompressionCodecName.ZSTD
         );
     }
 
@@ -125,31 +122,29 @@ public class DataGen {
 
         MessageType mt = builder.named("MyMessage");
 
-        CustomParquetWriter pqw2 = getParquetWriter(getOutputFileName(document), mt);
+        final CustomWriterSupport customWriterSupport = new CustomWriterSupport(mt);
+        CustomParquetWriter pqw2 = getParquetWriter(getOutputFileName(document), customWriterSupport);
 
-        for (boolean more = true; more; /* inside */ ) {
-
-            List<Object> myRow2 = new LinkedList<>();
-
-            for (Map.Entry<String, DataGenerator> entry : generators.entrySet()) {
-
-                String fieldName = entry.getKey();
+        final Set<Map.Entry<String, DataGenerator>> entrySet = generators.entrySet();
+        final Object[] data = new Object[entrySet.size()];
+        boolean more = true;
+        while (more) {
+            int i = 0;
+            for (Map.Entry<String, DataGenerator> entry : entrySet) {
                 DataGenerator gen = entry.getValue();
-
-                if (!gen.getObjectIterator().hasNext()) {
+                final Iterator<Object> iter = gen.getObjectIterator();
+                if (!iter.hasNext()) {
                     more = false;
                     break;
                 }
-
-                Object obj = gen.getObjectIterator().next();
-                myRow2.add(obj);
+                data[i++] = iter.next();
             }
-
             if (more) {
-                pqw2.write(myRow2);
+                pqw2.write(data);
             }
         }
 
+        customWriterSupport.flush();
         pqw2.close();
     }
 

@@ -1,8 +1,8 @@
 {
   "benchmarks": [
     {
-      "title": "Join 1k animals and adjectives",
-      "generator_files": [ "animals-pq.json", "adjectives-pq.json", "join-1k-pq.json" ],
+      "title": "Join 20m animals and adjectives",
+      "generator_files": [ "animals-pq.json", "adjectives-pq.json", "join-20m-pq.json" ],
       "benchmark_file": "animals-joiner-pq.json",
     }
   ]

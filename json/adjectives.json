@@ -1,6 +1,5 @@
 {
-  "format": "CSV",
-  "output_filename": "adjectives.csv",
+  "format": "PARQUET",
   "columns" : {
     "adjective_id" :
     {

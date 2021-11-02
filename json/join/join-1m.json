@@ -1,6 +1,5 @@
 {
-  "format": "CSV",
-  "output_filename": "join.csv",
+  "format": "PARQUET",
   "columns" : {
     "Values" :
     {

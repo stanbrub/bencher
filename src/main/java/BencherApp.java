@@ -100,12 +100,19 @@ public class BencherApp {
         }
     }
 
-    static void runBenchmark(String inputFileName) throws IOException, ParseException {
+    static JSONObject getBenchmarkObject(final File dir, String inputFilename) throws IOException, ParseException {
+        if (!inputFilename.startsWith(File.separator)) {
+            inputFilename = dir.getAbsolutePath() + File.separator + inputFilename;
+        }
 
         // get the JSON file root object as a map of column names to JSON objects
-        JSONObject jsonMap = (JSONObject) new JSONParser().parse(new FileReader(inputFileName));
-        Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
-        ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
+        final JSONObject jsonMap = (JSONObject) new JSONParser().parse(new FileReader(inputFilename));
+        return jsonMap;
+    }
+
+    static void runBenchmark(JSONObject jsonMap) {
+        final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
+        final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
 
         // get our console and a session within it
         try (final Session session = getSession()) {
@@ -146,9 +153,9 @@ public class BencherApp {
         }
     }
 
-    private static ArrayList<Object> getBenchmarks(String inputFileName) throws IOException, ParseException {
+    private static ArrayList<Object> getBenchmarks(String jobFilename) throws IOException, ParseException {
 
-        JSONObject jsonMap = (JSONObject) new JSONParser().parse(new FileReader(inputFileName));
+        JSONObject jsonMap = (JSONObject) new JSONParser().parse(new FileReader(jobFilename));
         Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         ArrayList<Object> benchmarks = (ArrayList<Object>) documentDictionary.get("benchmarks");
 
@@ -164,27 +171,36 @@ public class BencherApp {
         return fn;
     }
 
+    private static final String me = BencherApp.class.getSimpleName();
+
     public static void main(String[] args) {
 
-        String inputFileName;
-        if (args.length < 1) {
-            inputFileName = "json" + File.separator + "joiner-bench.json";
+        String jobFilename = null;
+        if (args.length != 1) {
+            System.err.println("Usage: " + me + " job.json");
+            System.exit(1);
         } else {
-            inputFileName = relJsonFn(args[0]);
+            jobFilename = relJsonFn(args[0]);
         }
+
+        final File jobFile = new File(jobFilename);
+        if (!jobFile.exists()) {
+            System.err.printf(me + ": job file \"%s\" doesn't exist.", jobFilename);
+        }
+        final File inputFileDir = jobFile.getParentFile();
 
         // open and read the definition file to an array of definition objects
         ArrayList<Object> benchmarks = null;
         try {
-            benchmarks = getBenchmarks(inputFileName);
+            benchmarks = getBenchmarks(jobFilename);
         } catch (FileNotFoundException ex) {
-            System.err.printf("Couldn't find file \"%s\": %s\n", inputFileName, ex.getMessage());
+            System.err.printf(me + ": Couldn't find file \"%s\": %s\n", jobFilename, ex.getMessage());
             System.exit(1);
         } catch (IOException ex) {
-            System.err.printf("Couldn't read file \"%s\": %s\n", inputFileName, ex.getMessage());
+            System.err.printf(me + ": Couldn't read file \"%s\": %s\n", jobFilename, ex.getMessage());
             System.exit(1);
         } catch (ParseException ex) {
-            System.err.printf("Couldn't parse file \"%s\": %s\n", inputFileName, ex.getMessage());
+            System.err.printf(me + ": Couldn't parse file \"%s\": %s\n", jobFilename, ex.getMessage());
             System.exit(1);
         }
 
@@ -193,36 +209,51 @@ public class BencherApp {
 
             Map<String, Object> benchmarkDefinition = (Map<String, Object>) bench;
 
-            String title = (String) benchmarkDefinition.get("title");
-            String benchFile = (String) benchmarkDefinition.get("benchmark_file");
-            benchFile = relJsonFn(benchFile);
-            ArrayList<String> generatorFiles = (ArrayList<String>) benchmarkDefinition.get("generator_files");
-            for (int i = 0; i < generatorFiles.size(); ++i) {
-                generatorFiles.set(i, relJsonFn(generatorFiles.get(i)));
+            final String title = (String) benchmarkDefinition.get("title");
+            ArrayList<String> generatorFilenames = (ArrayList<String>) benchmarkDefinition.get("generator_files");
+            for (int i = 0; i < generatorFilenames.size(); ++i) {
+                generatorFilenames.set(i, generatorFilenames.get(i));
             }
 
-            System.out.printf("starting benchmark: \"%s\"\n", title);
+            System.out.printf("starting benchmark name \"%s\" from file \"%s\"\n", title, jobFile.getAbsoluteFile());
 
             // generate data, then run the benchmark script
-            for(String generatorFile : generatorFiles) {
+            for (String generatorFilename : generatorFilenames) {
                 try {
-                    DataGen.generateData(generatorFile);
+                    DataGen.generateData(inputFileDir, generatorFilename);
                 } catch (IOException ex) {
-                    System.err.printf("Couldn't read generator file \"%s\": %s\n", generatorFile, ex.getMessage());
+                    System.err.printf(me + ": Couldn't read generator file \"%s\": %s\n", generatorFilename, ex.getMessage());
                     System.exit(1);
                 } catch (ParseException ex) {
-                    System.err.printf("Couldn't parse generator file \"%s\": %s\n", inputFileName, ex.getMessage());
+                    System.err.printf(me  + ": Couldn't parse generator file \"%s\": %s\n", jobFilename, ex.getMessage());
                     System.exit(1);
                 }
             }
 
+            final JSONObject benchmarkObject;
+            final String benchFilename = (String) benchmarkDefinition.get("benchmark_file");
             try {
-                runBenchmark(benchFile);
+                if (benchFilename != null) {
+                    benchmarkObject = getBenchmarkObject(inputFileDir, benchFilename);
+                } else {
+                    benchmarkObject = (JSONObject) benchmarkDefinition.get("benchmark");
+                    if (benchmarkObject == null) {
+                        System.err.printf(me + ": There is no \"benchmark_file\" or \"benchmark\" definition in \"%s\"\n",
+                                jobFile.getAbsolutePath());
+                        System.exit(1);
+                    }
+                }
+                runBenchmark(benchmarkObject);
             } catch (IOException ex) {
-                System.err.printf("Couldn't read benchmark file \"%s\": %s\n", benchFile, ex.getMessage());
+                if (benchFilename != null) {
+                    System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex.getMessage());
+                } else {
+                    System.err.printf(me + ": Couldnt read benchmark: %s", ex.getMessage());
+                }
                 System.exit(1);
             } catch (ParseException ex) {
-                System.err.printf("Couldn't parse benchmark file \"%s\": %s\n", inputFileName, ex.getMessage());
+                System.err.printf(me + ": Couldn't parse benchmark file \"%s\": %s\n",
+                        jobFile.getAbsolutePath(), ex.getMessage());
                 System.exit(1);
             }
 

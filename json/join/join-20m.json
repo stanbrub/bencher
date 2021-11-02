@@ -1,6 +1,5 @@
 {
   "format": "PARQUET",
-  "output_filename": "join.parquet",
   "columns" : {
     "Values" :
     {
@@ -9,7 +8,7 @@
       "order": "Increasing",
       "seed": "8675309",
       "range_start": "1",
-      "range_stop": "1000",
+      "range_stop": "20000000",
       "percent_null": "0"
     },
     "adjective_id" :

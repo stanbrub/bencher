@@ -1,6 +1,5 @@
 {
-  "format": "CSV",
-  "output_filename": "animals.csv",
+  "format": "PARQUET",
   "columns" : {
     "animal_id" :
     {

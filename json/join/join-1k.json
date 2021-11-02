@@ -1,6 +1,5 @@
 {
-  "format": "CSV",
-  "output_filename": "join.csv",
+  "format": "PARQUET",
   "columns" : {
     "Values" :
     {
@@ -9,7 +8,7 @@
       "order": "Increasing",
       "seed": "8675309",
       "range_start": "1",
-      "range_stop": "10000000",
+      "range_stop": "1000",
       "percent_null": "0"
     },
     "adjective_id" :

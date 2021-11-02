@@ -126,14 +126,18 @@ public class FileGenerator extends DataGenerator {
                 return "";
             }
 
-            if (columnType == ColumnType.INT32)
-                return Integer.parseInt(str);
-            else if (columnType == ColumnType.INT64)
-                return str;
-            else if (columnType == ColumnType.DOUBLE)
-                return Double.parseDouble(str);
-            else
-                throw new InternalError("Need to implement more types");
+            switch(columnType) {
+                case INT32:
+                    return Integer.parseInt(str);
+                case INT64:
+                    return Long.parseLong(str);
+                case DOUBLE:
+                    return Double.parseDouble(str);
+                case STRING:
+                    return str;
+                default:
+                    throw new InternalError("Need to implement more types");
+            }
         }
     }
 

@@ -1,0 +1,25 @@
+{
+  "format": "PARQUET",
+  "output_filename": "adjectives.parquet",
+  "columns" : {
+    "adjective_id" :
+    {
+      "generation_type": "id",
+      "column_name": "adjective_id",
+      "type": "INT32",
+      "increment": "INCREASING",
+      "seed": "8675309",
+      "start_id": "1",
+      "percent_null": "0"
+    },
+    "adjective_name" :
+    {
+      "generation_type": "file",
+      "column_name": "adjective_name",
+      "type": "STRING",
+      "seed": "8675309",
+      "source_file": "sets/adjectives.txt",
+      "percent_null": "0"
+    }
+  }
+}

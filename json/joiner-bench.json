@@ -1,8 +1,8 @@
 {
   "benchmarks": [
     {
-      "title": "Join 1m animals and adjectives",
-      "generator_files": [ "animals.json", "adjectives.json", "join-10m.json" ],
+      "title": "Join 30m animals and adjectives",
+      "generator_files": [ "animals.json", "adjectives.json", "join-30m.json" ],
       "benchmark_file": "animals-joiner.json",
     }
   ]

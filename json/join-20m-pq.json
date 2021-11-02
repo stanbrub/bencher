@@ -1,0 +1,35 @@
+{
+  "format": "PARQUET",
+  "output_filename": "join.parquet",
+  "columns" : {
+    "Values" :
+    {
+      "generation_type": "full_range",
+      "type": "INT32",
+      "order": "Increasing",
+      "seed": "8675309",
+      "range_start": "1",
+      "range_stop": "20000000",
+      "percent_null": "0"
+    },
+    "adjective_id" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "650",
+      "type": "INT32",
+      "seed": "8675309",
+      "percent_null": "5"
+    },
+    "animal_id" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "250",
+      "type": "INT32",
+      "seed": "1239015897",
+      "percent_null": "5"
+    }
+  }
+}
+

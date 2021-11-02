@@ -1,0 +1,34 @@
+{
+  "statements" : [
+    {
+      "title" : "imports",
+      "text" : "from deephaven.ParqueteTools import readTable",
+      "timed" : 0
+    },
+
+    {
+      "title" : "load animals",
+      "text" : "animals = readTable(\"/data/animals.parquet\")",
+      "timed" : 1
+    },
+
+    {
+      "title" : "load adjectives",
+      "text" : "adjectives = readTable(\"/data/adjectives.parquet\")",
+      "timed" : 1
+    },
+
+    {
+      "title" : "load relation table",
+      "text" : "relation = readTable(\"/data/join.parquet\")",
+      "timed" : 1
+    },
+
+    {
+      "title" : "perform join",
+      "text" : "result = relation.join(adjectives, \"adjective_id\").join(animals, \"animal_id\").view(\"Values\", \"adjective_name\", \"animal_name\")",
+      "timed" : 1
+    }
+
+  ]
+}

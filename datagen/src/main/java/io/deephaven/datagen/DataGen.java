@@ -46,7 +46,7 @@ public class DataGen {
         }
         Path path = new Path(outputParquetFile.toURI().toString());
         return new CustomParquetWriter(
-                path, schema, true, CompressionCodecName.SNAPPY
+                path, schema, false, CompressionCodecName.ZSTD
         );
     }
 

@@ -2,7 +2,7 @@
   "statements" : [
     {
       "title" : "imports",
-      "text" : "from deephaven.ParqueteTools import readTable",
+      "text" : "from deephaven.ParquetTools import readTable",
       "timed" : 0
     },
 

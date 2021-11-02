@@ -41,11 +41,8 @@ public class CustomWriterSupport extends WriteSupport<List<Object>> {
 
         recordConsumer.startMessage();
         for (int i = 0; i < cols.size(); ++i) {
-
             final Object val = values.get(i);
-            if (val == null) {
-
-            } else {
+            if (val != null) {
                 recordConsumer.startField(cols.get(i).getPath()[0], i);
                 PrimitiveType.PrimitiveTypeName ptn = cols.get(i).getPrimitiveType().getPrimitiveTypeName();
                 switch (ptn) {

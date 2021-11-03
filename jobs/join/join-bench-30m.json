@@ -1,23 +1,23 @@
 {
   "benchmarks": [
     {
-      "title": "Join 20m animals and adjectives",
-      "generator_files": [ "animals.json", "adjectives.json", "join-20m.json" ],
+      "title": "Join 30m animals and adjectives",
+      "generator_files": [ "animals.json", "adjectives.json", "relation-30m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "tag = '20m'",
-                      "bench_name = 'joiner-bench-' + tag",
+                      "tag = '30m'",
+                      "bench_name = 'join-bench-' + tag",
                   ],
                   "timed" : 0
               },
 
               {
                   "title" : "load tables",
-                  "file" : "joiner-bench-tables.py",
+                  "file" : "join-bench-tables.py",
                   "timed" : 1
               },
 

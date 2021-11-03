@@ -231,7 +231,9 @@ public class DataGen {
             if (outputFile.exists() && outputFile.lastModified() > generatorFile.lastModified()) {
                 System.out.println("Not generating " + outputFilename + " since it exists and is older than " + generatorFilename);
             }
+            return;
         }
+        System.out.println("Generating " + outputFilename + ".");
 
         final Map<String, Object> columnDictionary = (Map<String, Object>) documentDictionary.get("columns");
 

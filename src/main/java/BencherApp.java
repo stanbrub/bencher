@@ -211,11 +211,11 @@ public class BencherApp {
         return benchmarks;
     }
 
-    private static final String JSON_PREFIX_PATH = System.getProperty("json.prefix.path");
+    private static final String JOBS_PREFIX_PATH = System.getProperty("jobs.prefix.path", "jobs");
 
     private static String relJsonFn(final String fn) {
-        if (!fn.startsWith(File.separator) && JSON_PREFIX_PATH != null) {
-            return JSON_PREFIX_PATH + File.separator + fn;
+        if (!fn.startsWith(File.separator) && JOBS_PREFIX_PATH != null) {
+            return JOBS_PREFIX_PATH + File.separator + fn;
         }
         return fn;
     }

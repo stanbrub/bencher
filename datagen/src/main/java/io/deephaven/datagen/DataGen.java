@@ -229,9 +229,10 @@ public class DataGen {
         if (!forceGeneration) {
             final File outputFile = new File(outputFilename);
             if (outputFile.exists() && outputFile.lastModified() > generatorFile.lastModified()) {
-                System.out.println("Not generating " + outputFilename + " since it exists and is older than " + generatorFilename);
+                System.out.println("Not generating " + outputFile.getAbsolutePath() +
+                        " since it exists and is older than " + generatorFile.getAbsolutePath());
+                return;
             }
-            return;
         }
         System.out.println("Generating " + outputFilename + ".");
 

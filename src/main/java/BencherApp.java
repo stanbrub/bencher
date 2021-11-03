@@ -125,11 +125,15 @@ public class BencherApp {
 
                 // for each statement ...
                 int statementNo = 0;
-                for (Object statementObject : statements) {
+                for (final Object statementObject : statements) {
                     ++statementNo;
-                    Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
+                    final Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
 
-                    String title = (String) statementDefinitionDictionary.get("title");
+                    final String title = (String) statementDefinitionDictionary.get("title");
+                    if (title == null) {
+                        throw new IllegalArgumentException(
+                                "statement number " + statementNo + " should include a \"title\" element.");
+                    }
                     final Object text = statementDefinitionDictionary.get("text");
                     final String statement;
                     if (text == null) {
@@ -167,7 +171,7 @@ public class BencherApp {
                     Stopwatch sw = isTimed ? Stopwatch.createStarted() : null;
 
                     // actually execute
-                    final Changes changes;
+                    Changes changes = null;
                     try {
                         changes = console.executeCode(statement);
                     } catch (TimeoutException ex) {
@@ -190,10 +194,10 @@ public class BencherApp {
                 }
             } catch (ExecutionException e) {
                 System.err.printf("Error: execution exception while getting a console: %s\n", e.getMessage());
-                throw new InternalError(e.getMessage());
+                throw new RuntimeException(e.getMessage());
             } catch (InterruptedException e) {
                 System.err.printf("Error: execution interrupted while getting a console: %s\n", e.getMessage());
-                throw new InternalError(e.getMessage());
+                throw new RuntimeException(e.getMessage());
             }
         }
     }
@@ -250,11 +254,15 @@ public class BencherApp {
         }
 
         // for each of the definition objects, run the benchmark!
+        int benchmarkNo = 0;
         for (Object bench : benchmarks) {
-
+            ++benchmarkNo;
             Map<String, Object> benchmarkDefinition = (Map<String, Object>) bench;
 
             final String title = (String) benchmarkDefinition.get("title");
+            if (title == null) {
+                System.err.println(me + ": benchmark number " + benchmarkNo + " is missing a \"title\" element");
+            }
             ArrayList<String> generatorFilenames = (ArrayList<String>) benchmarkDefinition.get("generator_files");
             for (int i = 0; i < generatorFilenames.size(); ++i) {
                 generatorFilenames.set(i, generatorFilenames.get(i));
@@ -299,6 +307,10 @@ public class BencherApp {
             } catch (ParseException ex) {
                 System.err.printf(me + ": Couldn't parse benchmark file \"%s\": %s\n",
                         jobFile.getAbsolutePath(), ex.getMessage());
+                System.exit(1);
+            } catch (Exception ex) {
+                System.err.printf(me + ": Execution failed for \"%s\": %s\n",
+                        title, ex.getMessage());
                 System.exit(1);
             }
 

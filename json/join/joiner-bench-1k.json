@@ -6,23 +6,36 @@
       "benchmark": {
           "statements" : [
               {
-                  "title" : "tag",
-                  "text" : "tag = '1k'"
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "tag = '1k'",
+                      "bench_name = 'joiner-bench-' + tag",
+                  ],
                   "timed" : 0
               },
 
               {
-                  "title" : "preamble",
-                  "file" : "joiner-bench-preamble.py",
+                  "title" : "load tables",
+                  "file" : "joiner-bench-tables.py",
                   "timed" : 1
               },
 
               {
                   "title" : "perform join",
-                  "text" : "result = relation.join(adjectives, 'adjective_id').join(animals, 'animal_id').view('Values', 'adjective_name', 'animal_name')",
+                  "text" : [
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = relation.join(adjectives, 'adjective_id').join(animals, 'animal_id').view('Values', 'adjective_name', 'animal_name')",
+                      "time_end_ns = time.perf_counter_ns()",
+                  ],
                   "timed" : 1
-              }
+              },
 
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
           ]
       }
     }

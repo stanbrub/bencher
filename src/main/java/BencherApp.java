@@ -1,3 +1,5 @@
+
+
 import com.google.common.base.Stopwatch;
 import io.deephaven.client.impl.ConsoleSession;
 import io.deephaven.client.impl.Session;
@@ -7,6 +9,7 @@ import io.deephaven.client.impl.script.VariableDefinition;
 
 import io.deephaven.datagen.DataGen;
 
+import io.deephaven.datagen.Utils;
 import io.deephaven.grpc_api.DeephavenChannel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -18,10 +21,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
-
+import java.util.stream.Collectors;
 
 public class BencherApp {
 
@@ -110,7 +115,7 @@ public class BencherApp {
         return jsonMap;
     }
 
-    static void runBenchmark(JSONObject jsonMap) {
+    static void runBenchmark(final File baseDir, final JSONObject jsonMap) {
         final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
 
@@ -119,28 +124,68 @@ public class BencherApp {
             try (final ConsoleSession console = getConsole(session)) {
 
                 // for each statement ...
+                int statementNo = 0;
                 for (Object statementObject : statements) {
-
+                    ++statementNo;
                     Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
 
                     String title = (String) statementDefinitionDictionary.get("title");
-                    String text = (String) statementDefinitionDictionary.get("text");
+                    final Object text = statementDefinitionDictionary.get("text");
+                    final String statement;
+                    if (text == null) {
+                        final String statementFilename = (String) statementDefinitionDictionary.get("file");
+                        if (statementFilename == null) {
+                            throw new IllegalArgumentException(
+                                    "statement number " + statementNo + " should include either \"text\" or \"file\" element.");
+                        }
+                        final File statementFile = Utils.locateFile(baseDir, statementFilename);
+                        try {
+                            statement = Files.lines(statementFile.toPath()).collect(Collectors.joining("\n")) + "\n";
+                        } catch (Exception e) {
+                            throw new RuntimeException(
+                                    "Error while trying to read statement file \"" +
+                                            statementFile.getAbsolutePath() +
+                                            "\" for statement number " + statementNo, e);
+                        }
+                    } else {
+                        if (text instanceof String) {
+                            statement = (String) text;
+                        } else if (text instanceof ArrayList){
+                            final ArrayList<Object> lines = (ArrayList<Object>) text;
+                            final StringBuilder sb = new StringBuilder();
+                            for (Object line : lines) {
+                                sb.append(line.toString()).append('\n');
+                            }
+                            statement = sb.toString();
+                        } else {
+                            throw new IllegalArgumentException(
+                                    "element \"text\" has the wrong type, it should be either string or array of strings");
+                        }
+                    }
                     boolean isTimed = ((Long) statementDefinitionDictionary.get("timed")) != 0;
 
                     Stopwatch sw = isTimed ? Stopwatch.createStarted() : null;
 
                     // actually execute
+                    final Changes changes;
                     try {
-                        Changes changes = console.executeCode(text);
+                        changes = console.executeCode(statement);
                     } catch (TimeoutException ex) {
                         System.err.printf("Execution of \"%s\" timed out: %s\n", title, ex.getMessage());
-                        break;
+                        System.exit(1);
                     }
+
+                    final Optional<String> errorMessageOptional = changes.errorMessage();
+                    errorMessageOptional.ifPresent(s -> {
+                        System.err.printf("Execution of \"%s\" failed with error:\n%s\n", title, s);
+                        System.exit(1);
+                    });
 
                     // optionally time ...
                     if (sw != null) {
                         sw.stop();
                         System.out.printf("\"%s\": Execution took %d milliseconds\n", title, sw.elapsed(TimeUnit.MILLISECONDS));
+                        System.out.flush();
                     }
                 }
             } catch (ExecutionException e) {
@@ -243,7 +288,7 @@ public class BencherApp {
                         System.exit(1);
                     }
                 }
-                runBenchmark(benchmarkObject);
+                runBenchmark(inputFileDir, benchmarkObject);
             } catch (IOException ex) {
                 if (benchFilename != null) {
                     System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex.getMessage());

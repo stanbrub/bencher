@@ -1,4 +1,3 @@
-
 package io.deephaven.datagen;
 
 import java.io.File;
@@ -211,18 +210,9 @@ public class DataGen {
      * @throws ParseException
      */
     public static void generateData(final File dir, final String generatorFilename) throws IOException, ParseException {
-        File generatorFile;
+        final File generatorFile;
         if (!generatorFilename.startsWith(File.separator)) {
-            String generatorAbsolutePath = dir.getAbsolutePath() + File.separator + generatorFilename;
-            generatorFile = new File(generatorAbsolutePath);
-            if (!generatorFile.exists()) {
-                generatorAbsolutePath = dir.getParent() + File.separator + generatorFilename;
-                generatorFile = new File(generatorAbsolutePath);
-                if (!generatorFile.exists()) {
-                    throw new IllegalArgumentException(
-                            "Couldn't find file \"" + generatorFilename + "\" in \"" + dir.getPath() + "\" or its parent.");
-                }
-            }
+            generatorFile = Utils.locateFile(dir, generatorFilename);
         } else {
             generatorFile = new File(generatorFilename);
             if (!generatorFile.exists()) {

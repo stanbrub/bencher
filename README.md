@@ -1,6 +1,6 @@
 # Bencher #
 
-Bencher is a tool, written in Java, to generate data files and run benchmarks on the Deephaven platofrm.
+Bencher is a command line tool, written in Java, to generate data files and run benchmarks on the Deephaven platform.
 
 The tool consumes JSON files that define **benchmark jobs**. The **benchmark definition file** contains an array of JSON objects that reference generation files and steps files.
 

@@ -34,6 +34,7 @@ directory where the benchmark job file lives, or its parent; the parent director
 in this way.
 
 Finally, there's a `"benchmark_file"` string which can also include a relative or absolute path. The value indicates the location of the steps file.
+Instead of providing  `"benchmark_file"`, it is possible to specify `"benchmark"` with the equivalent content inlined with the job file.
 
 The tool reads the job file and executes each benchmark job in order. It runes the generator file, then runs the benchmark file.
 
@@ -219,25 +220,25 @@ An example benchmark steps file is given here:
 	
 	    {
 	      "title" : "load animals",
-	      "text" : "animals = readCsv(\"/data/animals.csv\")",
+	      "text" : "animals = readCsv('/data/animals.csv')",
 	      "timed" : 1
 	    },
 	
 	    {
 	      "title" : "load adjectives",
-	      "text" : "adjectives = readCsv(\"/data/adjectives.csv\")",
+	      "text" : "adjectives = readCsv('/data/adjectives.csv')",
 	      "timed" : 1
 	    },
 	
 	    {
 	      "title" : "load relation table",
-	      "text" : "relation = readCsv(\"/data/join.csv\")",
+	      "text" : "relation = readCsv('/data/join.csv')",
 	      "timed" : 1
 	    },
 	
 	    {
 	      "title" : "perform join",
-	      "text" : "result = relation.join(adjectives, \"adjective_id\").join(animals, \"animal_id\").view(\"Values\", \"adjective_name\", \"animal_name\")",
+	      "text" : "result = relation.join(adjectives, 'adjective_id').join(animals, 'animal_id').view('Values', 'adjective_name', 'animal_name')",
 	      "timed" : 1
 	    }
 	
@@ -262,6 +263,13 @@ then executes four more statements, each of which is timed:
 	result = relation.join(adjectives, "adjective_id").join(animals, "animal_id").view("Values", "adjective_name", "animal_name")
 
 The script imports three different CSV files, showing the timing for each along the way. Finally, it joins the three tables together to produce a fourth, again showing the timing of the operation.
+
+There are three possible ways to provide the code for a statement:
+
+- In a `"text"` element that corresponds to a single string for a single line of code to execute.
+- In a `"text"` element that corresponds to an array of strins, each with a line of code to execute.
+- In a `"file"` element that indicates a python source filename with code to be executed line by line.
+  If the file name is relative, it is looked up in the same directory or the parent directory relative to the file where it is specified.
 
 # About Data Types #
 

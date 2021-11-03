@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Join 1k animals and adjectives",
+      "title": "Where filter over 100m relation table",
       "generator_files": [ "animals.json", "adjectives.json", "relation-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -17,15 +17,16 @@
 
               {
                   "title" : "load tables",
-                  "file" : "where-bench-tables.py",
+                  "file" : "common-tables.py",
                   "timed" : 1
               },
 
               {
                   "title" : "perform where",
                   "text" : [
+                      "from deephaven.conversion_utils import NULL_INT",
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.where('animal_name = `monkey`')"
+                      "result = relation.where('adjective_id != NULL_INT && adjective_id == animal_id')"
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

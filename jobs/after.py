@@ -15,6 +15,10 @@ import csv
 ellapsed_seconds = (time_end_ns - time_start_ns) / (1000*1000*1000.0)
 
 # Ensure process information is kept so we know the characteristics of the machine where the test ran.
+# The following code will ensure a csv file with process information is saved, if it does not already exist.
+# The filename matches the unique id of the DH worker process, eg: '41d68cea-1407-4811-9ce0-017bc259fd8b.csv'
+# The row we will insert with the result later will reference the process unique id where the results where
+# generated.
 
 process_unique_id = ( jpy.get_type("io.deephaven.db.v2.utils.MemoryTableLoggers")
                       .getInstance().getProcessInfo().getId().value() )

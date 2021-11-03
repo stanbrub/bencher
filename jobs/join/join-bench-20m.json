@@ -17,7 +17,7 @@
 
               {
                   "title" : "load tables",
-                  "file" : "join-bench-tables.py",
+                  "file" : "common-tables.py",
                   "timed" : 1
               },
 

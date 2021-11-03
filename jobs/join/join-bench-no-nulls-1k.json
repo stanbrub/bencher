@@ -1,15 +1,15 @@
 {
   "benchmarks": [
     {
-      "title": "Join 1m animals and adjectives",
-      "generator_files": [ "animals.json", "adjectives.json", "relation-1m.json" ],
+      "title": "Join 1k animals and adjectives",
+      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-1k.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "tag = '1m'",
+                      "tag = 'no-nulls-1k'",
                       "bench_name = 'join-bench-' + tag",
                   ],
                   "timed" : 0

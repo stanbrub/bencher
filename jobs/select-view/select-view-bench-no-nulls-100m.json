@@ -26,7 +26,7 @@
                   "title" : "create view",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.view('composite_id = 643*adjective_id + animal_id')"
+                      "result = relation.view('composite_id = 643*adjective_id + animal_id').select()"
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

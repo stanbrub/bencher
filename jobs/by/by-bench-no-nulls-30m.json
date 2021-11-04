@@ -18,16 +18,15 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet')",
                   "timed" : 1
               },
 
               {
                   "title" : "perform countBy",
                   "text" : [
-                      "t = relation.select('animal_id', 'adjective_id')"
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = t.countBy('count', 'animal_id')",
+                      "result = relation.view('animal_id', 'adjective_id').countBy('count', 'animal_id')",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

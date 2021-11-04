@@ -25,7 +25,6 @@
               {
                   "title" : "create view",
                   "text" : [
-                      "from deephaven.conversion_utils import NULL_INT",
                       "time_start_ns = time.perf_counter_ns()",
                       "result = relation.view('composite_id = 643*adjective_id + animal_id')"
                       "time_end_ns = time.perf_counter_ns()",

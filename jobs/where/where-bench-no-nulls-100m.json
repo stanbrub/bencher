@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Where filter over 100m relation table",
+      "title": "Where filter (no nulls) over 100m relation table",
       "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -25,10 +25,9 @@
               {
                   "title" : "perform where",
                   "text" : [
-                      "from deephaven.conversion_utils import NULL_INT",
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.where('adjective_id == animal_id')"
-                      "time_end_ns = time.perf_counter_ns()",
+                      "result = relation.where('adjective_id == animal_id')",
+                      "time_end_ns = time.perf_counter_ns()"
                   ],
                   "timed" : 1
               },

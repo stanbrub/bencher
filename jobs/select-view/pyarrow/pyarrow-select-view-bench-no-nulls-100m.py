@@ -4,8 +4,9 @@ import time
 df = ds.dataset(output_prefix_path + '/data/relation-no-nulls-100m.parquet', format='parquet').to_table().to_pandas()
 
 start_time = time.time()
-result = df..loc[:, ['adjective_id', 'animal_id']].apply(lambda row: row[0]*643 + row[1], axis=1, raw=True).to_frame()
-count = len(df)
+result = df['adjective_id'] * 643 + df['animal_id']
+result = result.to_frame()
+count = len(result)
 end_time = time.time()
 
 print(count)

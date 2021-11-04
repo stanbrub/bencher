@@ -10,7 +10,7 @@
                   "text" : [
                       "import time",
                       "tag = '1k'",
-                      "bench_name = 'join-bench-' + tag",
+                      "bench_name = 'select-join-bench-' + tag",
                   ],
                   "timed" : 0
               },

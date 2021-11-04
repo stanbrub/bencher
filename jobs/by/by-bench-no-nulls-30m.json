@@ -1,0 +1,44 @@
+{
+  "benchmarks": [
+    {
+      "title": "Do a countBy on 30m rows",
+      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-30m.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "tag = 'no-nulls-30m'",
+                      "bench_name = 'by-bench-' + tag",
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "file" : "common-tables.py",
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "perform countBy",
+                  "text" : [
+                      "t = relation.select('animal_id', 'adjective_id')"
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = t.countBy('count', 'animal_id')",
+                      "time_end_ns = time.perf_counter_ns()",
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

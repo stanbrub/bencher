@@ -1,4 +1,4 @@
-
+package io.deephaven.bencher;
 
 import com.google.common.base.Stopwatch;
 import io.deephaven.client.impl.ConsoleSession;

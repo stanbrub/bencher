@@ -1,33 +1,31 @@
 {
   "benchmarks": [
     {
-      "title": "Where filter over 100m relation table already in memory via select",
-      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-100m.json" ],
+      "title": "Join 30m animals and adjectives",
+      "generator_files": [ "animals.json", "adjectives.json", "relation-30m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "tag = 'no-nulls-100m'",
-                      "bench_name = 'select-where-bench-' + tag",
+                      "tag = '30m'",
+                      "bench_name = 'join-bench-' + tag",
                   ],
                   "timed" : 0
               },
 
               {
                   "title" : "load tables",
-                  "file" : "common-tables.py",
+                  "file" : "common-tables-select.py",
                   "timed" : 1
               },
 
               {
-                  "title" : "perform where over earlier computed select",
+                  "title" : "perform join",
                   "text" : [
-                      "from deephaven.conversion_utils import NULL_INT",
-                      "t = relation.select('adjective_id', 'animal_id')",
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = t.where('adjective_id == animal_id')"
+                      "result = relation.join(adjectives, 'adjective_id').join(animals, 'animal_id').view('Values', 'adjective_name', 'animal_name')",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

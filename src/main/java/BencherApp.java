@@ -268,7 +268,7 @@ public class BencherApp {
                 generatorFilenames.set(i, generatorFilenames.get(i));
             }
 
-            System.out.printf("starting benchmark name \"%s\" from file \"%s\"\n", title, jobFile.getAbsoluteFile());
+            System.out.printf("Starting for benchmark name \"%s\" from file \"%s\"\n", title, jobFile.getAbsoluteFile());
 
             // generate data, then run the benchmark script
             for (String generatorFilename : generatorFilenames) {
@@ -283,6 +283,10 @@ public class BencherApp {
                 }
             }
 
+            if (Boolean.parseBoolean(System.getProperty("generate.only", "False"))) {
+                System.out.printf("Generate only requested, not running benchmark \"%s\"", title);
+                continue;
+            }
             final JSONObject benchmarkObject;
             final String benchFilename = (String) benchmarkDefinition.get("benchmark_file");
             try {

@@ -26,7 +26,7 @@
                   "text" : [
                       "from deephaven.conversion_utils import NULL_INT",
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.where('adjective_id != NULL_INT && adjective_id == animal_id')"
+                      "result = relation.where('adjective_id == animal_id')"
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

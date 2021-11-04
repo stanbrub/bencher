@@ -2,13 +2,14 @@
   "benchmarks": [
     {
       "title": "Where filter over 100m relation table",
-      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-100m.json" ],
+      "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
+                      "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'where-bench-' + tag",
                   ],
@@ -17,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "file" : "common-tables.py",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
                   "timed" : 1
               },
 

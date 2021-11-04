@@ -2,13 +2,14 @@
   "benchmarks": [
     {
       "title": "Do a countBy on 30m rows",
-      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-30m.json" ],
+      "generator_files": [ "relation-no-nulls-30m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
+                      "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-30m'",
                       "bench_name = 'by-bench-' + tag",
                   ],
@@ -17,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "file" : "common-tables.py",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
                   "timed" : 1
               },
 

@@ -1,18 +1,17 @@
 {
   "benchmarks": [
     {
-      "title": "Where filter over 100m relation table already in memory via select",
-      "generator_files": [ "relation-100m.json" ],
+      "title": "Update over 100m relation table",
+      "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "from deephaven.conversion_utils import NULL_INT",
                       "import deephaven.ParquetTools as pt",
-                      "tag = '100m'",
-                      "bench_name = 'select-where-bench-' + tag",
+                      "tag = 'no-nulls-100m'",
+                      "bench_name = 'update-bench-' + tag",
                   ],
                   "timed" : 0
               },
@@ -24,10 +23,11 @@
               },
 
               {
-                  "title" : "perform where over earlier computed select",
+                  "title" : "perform update",
                   "text" : [
+                      "from deephaven.conversion_utils import NULL_INT",
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = t.where('adjective_id != NULL_INT && adjective_id == animal_id')"
+                      "result = relation.update('composite_id = 643*adjective_id + animal_id')"
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

@@ -2,13 +2,14 @@
   "benchmarks": [
     {
       "title": "Where filter over 100m relation table already in memory via select",
-      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-100m.json" ],
+      "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
+                      "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'select-where-bench-' + tag",
                   ],
@@ -17,15 +18,13 @@
 
               {
                   "title" : "load tables",
-                  "file" : "common-tables.py",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
                   "timed" : 1
               },
 
               {
                   "title" : "perform where over earlier computed select",
                   "text" : [
-                      "from deephaven.conversion_utils import NULL_INT",
-                      "t = relation.select('adjective_id', 'animal_id')",
                       "time_start_ns = time.perf_counter_ns()",
                       "result = t.where('adjective_id == animal_id')"
                       "time_end_ns = time.perf_counter_ns()",

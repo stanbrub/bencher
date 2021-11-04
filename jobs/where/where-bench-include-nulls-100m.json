@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Where filter over 100m relation table",
+      "title": "Where filter (include nulls) over 100m relation table",
       "generator_files": [ "relation-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -26,7 +26,7 @@
                   "title" : "perform where",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.where('!isNull(adjective_id) && adjective_id == animal_id')",
+                      "result = relation.where('adjective_id == animal_id')",
                       "time_end_ns = time.perf_counter_ns()"
                   ],
                   "timed" : 1

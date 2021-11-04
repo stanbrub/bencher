@@ -11,8 +11,6 @@ import java.util.stream.LongStream;
 
 public class RandomGenerator extends DataGenerator {
 
-    private double lower_bound;
-    private double upper_bound;
     private PercentNullManager percent_null;
     private GeneratorObjectIterator objectIterator;
     private GeneratorStringIterator stringIterator;
@@ -31,7 +29,7 @@ public class RandomGenerator extends DataGenerator {
         this.prng = new Random(seed);
         objectIterator = new GeneratorObjectIterator();
         stringIterator = new GeneratorStringIterator();
-        initialize(columnType, (double) lower_bound, (double) upper_bound, percent_null);
+        this.columnType = columnType;
 
         is = prng.ints(lower_bound, upper_bound);
         isi = is.iterator();
@@ -43,7 +41,7 @@ public class RandomGenerator extends DataGenerator {
         this.prng = new Random(seed);
         objectIterator = new GeneratorObjectIterator();
         stringIterator = new GeneratorStringIterator();
-        initialize(columnType, lower_bound, upper_bound, percent_null);
+        this.columnType = columnType;
 
         ds = prng.doubles(lower_bound, upper_bound);
         dsi = ds.iterator();
@@ -55,19 +53,11 @@ public class RandomGenerator extends DataGenerator {
         this.prng = new Random(seed);
         objectIterator = new GeneratorObjectIterator();
         stringIterator = new GeneratorStringIterator();
-        initialize(columnType, (double) lower_bound, (double) upper_bound, percent_null);
+        this.columnType = columnType;
 
         ls = prng.longs(lower_bound, upper_bound);
         lsi = ls.iterator();
     }
-
-    private void initialize(ColumnType columnType, double lower_bound, double upper_bound, double percent_null) {
-
-        this.columnType = columnType;
-        this.lower_bound = lower_bound;
-        this.upper_bound = upper_bound;
-    }
-
 
     @Override
     int getCapacity() {
@@ -94,9 +84,7 @@ public class RandomGenerator extends DataGenerator {
         String lower = (String) jo.get("lower_bound");
         String upper = (String) jo.get("upper_bound");
 
-        RandomGenerator rg = null;
         long seed = Long.parseLong((String) jo.get("seed"));
-
 
         switch (columnType) {
             case DOUBLE:
@@ -104,8 +92,7 @@ public class RandomGenerator extends DataGenerator {
                 double lower_bound = Double.parseDouble(lower);
                 double upper_bound = Double.parseDouble(upper);
 
-                rg = new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
-                break;
+                return new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
             }
 
             case INT32:
@@ -113,8 +100,7 @@ public class RandomGenerator extends DataGenerator {
                 int lower_bound = Integer.parseInt(lower);
                 int upper_bound = Integer.parseInt(upper);
 
-                rg = new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
-                break;
+                return new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
             }
 
             case INT64:
@@ -122,43 +108,32 @@ public class RandomGenerator extends DataGenerator {
                 long lower_bound = Long.parseLong(lower);
                 long upper_bound = Long.parseLong(upper);
 
-                rg = new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
-                break;
+                return new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
             }
 
             case STRING:
             default:
                 throw new IllegalArgumentException(String.format("%s: output type %s is not supported", fieldName, columnType));
         }
-
-        return rg;
     }
 
 
     private Object getNext() {
-
-        Object o = null;
         switch (columnType) {
 
             case DOUBLE:
-                o = dsi.next();
-                break;
+                return dsi.next();
 
             case INT32:
-                o = isi.next();
-                break;
+                return isi.next();
 
             case INT64:
-                o = lsi.next();
-                break;
+                return lsi.next();
 
             case STRING:
             default:
                 throw new InternalError(String.format("column type %s is not supported", columnType));
-
         }
-
-        return o;
     }
 
     private class GeneratorObjectIterator implements Iterator<Object> {

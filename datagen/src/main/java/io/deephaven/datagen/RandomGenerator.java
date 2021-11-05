@@ -57,70 +57,134 @@ public class RandomGenerator extends DataGenerator {
         return new RandomGenerator(columnType, seed, percent_null, ls.iterator());
     }
 
+    static RandomGenerator ofNormal(
+            final double mean,
+            final double stddev,
+            final long seed,
+            final double percent_null
+    ) {
+        return new RandomGenerator(ColumnType.DOUBLE, seed, percent_null, new PrimitiveIterator.OfDouble() {
+            final Random prng = new Random(seed);
+            boolean havePrecomputed = false;
+            double precomputed;
+            @Override
+            public double nextDouble() {
+                // Uses polar Box-Muller transformation, which generates two values at a time.
+                if (havePrecomputed) {
+                    havePrecomputed = false;
+                    return mean + stddev*precomputed;
+                };
+
+                double x, y, sq;
+                do {
+                    x = 2.0 * prng.nextDouble() - 1.0;
+                    y = 2.0 * prng.nextDouble() - 1.0;
+                    sq = x*x + y*y;
+                } while (sq >= 1.0);
+
+                final double z = Math.sqrt(-2.0*Math.log(sq)/sq);
+                havePrecomputed = true;
+                precomputed = x*z;
+                return mean + stddev*y*z;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
+
+    private static double nextExp(final Random prng, final double inverseLambda) {
+        double x;
+        do {
+            x = prng.nextDouble();
+        } while (x == 0.0);
+        return -Math.log(x) * inverseLambda;
+    }
+
+    static RandomGenerator ofPoissonWait(
+            final long startNanos,
+            final long periodNanos,
+            final long seed,
+            final double percent_null
+    ) {
+        if (periodNanos <= 0) {
+            throw new IllegalArgumentException(String.format("period_nanos (=%d) should be > 0.", periodNanos));
+        }
+        return new RandomGenerator(ColumnType.TIMESTAMP_NANOS, seed, percent_null, new PrimitiveIterator.OfLong() {
+            final Random prng = new Random(seed);
+            final double period = (double) periodNanos;
+            long current = startNanos;
+            @Override
+            public long nextLong() {
+                current += (long) Math.floor(nextExp(prng, period));
+                return current;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
+
+    static RandomGenerator ofExponential(
+            final double lambda,
+            final long seed,
+            final double percent_null
+    ) {
+        if (lambda <= 0) {
+            throw new IllegalArgumentException(String.format("lambda (=%g) should be > 0", lambda));
+        }
+        return new RandomGenerator(ColumnType.DOUBLE, seed, percent_null, new PrimitiveIterator.OfDouble() {
+            final Random prng = new Random(seed);
+            final double inverseLambda = 1.0 / lambda;
+            @Override
+            public double nextDouble() {
+                return nextExp(prng, inverseLambda);
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
+
+
     @Override
     public Iterator<Object> getIterator() {
         return objectIterator;
     }
 
-    static RandomGenerator fromJson(final String fieldName, final JSONObject jo) {
-
-        final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
-        final double percent_null = PercentNullManager.parseJson(fieldName, jo);
-
-        final Object jsonLower = jo.get("lower_bound");
-        if (jsonLower == null) {
-            throw new IllegalArgumentException("Missing \"lower_bound\" element");
-        } else if (! (jsonLower instanceof String)) {
-            throw new IllegalArgumentException("Wrong type for \"lower_bound\" element, should be string");
-        }
-        final String lower = (String) jsonLower;
-
-        final Object jsonUpper = jo.get("upper_bound");
-        if (jsonUpper == null) {
-            throw new IllegalArgumentException("Missing \"upper_bound\" element");
-        } else if (! (jsonUpper instanceof String)) {
-            throw new IllegalArgumentException("Wrong type for \"upper_bound\" element, should be string");
-        }
-        final String upper = (String) jsonUpper;
-
-        final Object jsonSeed = jo.get("seed");
-        if (jsonSeed == null) {
-            throw new IllegalArgumentException("Missing \"upper_bound\" element");
-        } else if (! (jsonSeed instanceof String)) {
-            throw new IllegalArgumentException("Wrong type for \"seed\" element, should be string");
-        }
-        final long seed;
-        try {
-            seed = Long.parseLong((String) jsonSeed);
-        } catch( NumberFormatException ex) {
-            throw new IllegalArgumentException(
-                    String.format("Can't convert element value \"%s\" for \"seed\" element", jsonSeed),
-                    ex);
-        }
+    static RandomGenerator uniformFromJson(
+            final String fieldName,
+            final JSONObject jo,
+            final ColumnType columnType,
+            final double percentNull,
+            final long seed) {
 
         switch (columnType) {
-            case DOUBLE:
-            {
-                final double lower_bound = Double.parseDouble(lower);
-                final double upper_bound = Double.parseDouble(upper);
+            case INT32: {
+                final int lower_bound = Utils.getIntElementValue("lower_bound", jo);
+                final int upper_bound = Utils.getIntElementValue("upper_bound", jo);
 
-                return RandomGenerator.ofUniformDouble(columnType, lower_bound, upper_bound, seed, percent_null);
+                return RandomGenerator.ofUniformInt(columnType, lower_bound, upper_bound, seed, percentNull);
             }
 
-            case INT32:
-            {
-                final int lower_bound = Integer.parseInt(lower);
-                final int upper_bound = Integer.parseInt(upper);
+            case INT64: {
+                final long lower_bound = Utils.getLongElementValue("lower_bound", jo);
+                final long upper_bound = Utils.getLongElementValue("upper_bound", jo);
 
-                return RandomGenerator.ofUniformInt(columnType, lower_bound, upper_bound, seed, percent_null);
+                return RandomGenerator.ofUniformLong(columnType, lower_bound, upper_bound, seed, percentNull);
             }
 
-            case INT64:
-            {
-                final long lower_bound = Long.parseLong(lower);
-                final long upper_bound = Long.parseLong(upper);
+            case DOUBLE: {
+                final double lower_bound = Utils.getDoubleElementValue("lower_bound", jo);
+                final double upper_bound = Utils.getDoubleElementValue("upper_bound", jo);
 
-                return RandomGenerator.ofUniformLong(columnType, lower_bound, upper_bound, seed, percent_null);
+                return RandomGenerator.ofUniformDouble(columnType, lower_bound, upper_bound, seed, percentNull);
             }
 
             case STRING:
@@ -131,23 +195,102 @@ public class RandomGenerator extends DataGenerator {
         }
     }
 
-    private Object getNext() {
+    static RandomGenerator normalFromJson(
+            final String fieldName,
+            final JSONObject jo,
+            final ColumnType columnType,
+            final double percentNull,
+            final long seed) {
+        final double mean = Utils.getDoubleElementValue("mean", jo);
+        final double stddev = Utils.getDoubleElementValue("stddev", jo);
         switch (columnType) {
             case DOUBLE:
+                return RandomGenerator.ofNormal(mean, stddev, seed, percentNull);
             case INT32:
             case INT64:
-                return it.next();
-
             case STRING:
             case TIMESTAMP_NANOS:
-                throw new IllegalStateException(String.format("column type %s is not supported", columnType));
+                throw new IllegalArgumentException(String.format(
+                        "%s: output type %s is not supported for normal distribution",
+                        fieldName, columnType));
             default:
                 throw new IllegalStateException("Missing column type");
         }
     }
 
-    private class GeneratorObjectIterator implements Iterator<Object> {
+    static RandomGenerator exponentialFromJson(
+            final String fieldName,
+            final JSONObject jo,
+            final ColumnType columnType,
+            final double percentNull,
+            final long seed) {
+        final double lambda = Utils.getDoubleElementValue("lambda", jo);
+        switch (columnType) {
+            case DOUBLE:
+                return RandomGenerator.ofExponential(lambda, seed, percentNull);
+            case INT32:
+            case INT64:
+            case STRING:
+            case TIMESTAMP_NANOS:
+                throw new IllegalArgumentException(String.format(
+                        "%s: output type %s is not supported for normal distribution",
+                        fieldName, columnType));
+            default:
+                throw new IllegalStateException("Missing column type");
+        }
+    }
 
+    static RandomGenerator poissonWaitFromJson(
+            final String fieldName,
+            final JSONObject jo,
+            final ColumnType columnType,
+            final double percentNull,
+            final long seed) {
+        final long startNanos = Utils.getLongElementValue("start_nanos", jo);
+        final long periodNanos = Utils.getLongElementValue("period_nanos", jo);
+        switch (columnType) {
+            case TIMESTAMP_NANOS:
+                return RandomGenerator.ofPoissonWait(startNanos, periodNanos, seed, percentNull);
+            case INT32:
+            case INT64:
+            case DOUBLE:
+            case STRING:
+                throw new IllegalArgumentException(String.format(
+                        "%s: output type %s is not supported for poisson-wait distribution",
+                        fieldName, columnType));
+            default:
+                throw new IllegalStateException("Missing column type");
+        }
+    }
+
+    static RandomGenerator fromJson(final String fieldName, final JSONObject jo) {
+
+        final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
+        final double percentNull = PercentNullManager.parseJson(fieldName, jo);
+
+        final long seed = Utils.getLongElementValue("seed", jo);
+        final String distribution = Utils.getStringElementValue("distribution", jo);
+
+        switch (distribution) {
+            case "exponential":
+                return exponentialFromJson(fieldName, jo, columnType, percentNull, seed);
+            case "uniform":
+                return uniformFromJson(fieldName, jo, columnType, percentNull, seed);
+            case "normal":
+                return normalFromJson(fieldName, jo, columnType, percentNull, seed);
+            case "poisson-wait":
+                return poissonWaitFromJson(fieldName, jo, columnType, percentNull, seed);
+            default:
+                throw new IllegalArgumentException(String.format(
+                        "Unrecognized value \"%s\" for \"distribution\" element", distribution));
+        }
+    }
+
+    private Object getNext() {
+        return it.next();
+    }
+
+    private class GeneratorObjectIterator implements Iterator<Object> {
         @Override
         public boolean hasNext() {
             return true;

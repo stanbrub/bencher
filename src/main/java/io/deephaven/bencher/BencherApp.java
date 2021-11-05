@@ -240,7 +240,7 @@ public class BencherApp {
 
         final File jobFile = new File(jobFilename);
         if (!jobFile.exists()) {
-            System.err.printf(me + ": job file \"%s\" doesn't exist.", jobFilename);
+            System.err.printf(me + ": job file \"%s\" doesn't exist.\n", jobFilename);
         }
         final File inputFileDir = jobFile.getParentFile();
 
@@ -249,13 +249,13 @@ public class BencherApp {
         try {
             benchmarks = getBenchmarks(jobFilename);
         } catch (FileNotFoundException ex) {
-            System.err.printf(me + ": Couldn't find file \"%s\": %s\n", jobFilename, ex.getMessage());
+            System.err.printf(me + ": Couldn't find file \"%s\": %s.\n", jobFilename, ex.getMessage());
             System.exit(1);
         } catch (IOException ex) {
-            System.err.printf(me + ": Couldn't read file \"%s\": %s\n", jobFilename, ex.getMessage());
+            System.err.printf(me + ": Couldn't read file \"%s\": %s.\n", jobFilename, ex.getMessage());
             System.exit(1);
         } catch (ParseException ex) {
-            System.err.printf(me + ": Couldn't parse file \"%s\": %s\n", jobFilename, ex.getMessage());
+            System.err.printf(me + ": Couldn't parse file \"%s\": %s.\n", jobFilename, ex.getMessage());
             System.exit(1);
         }
 
@@ -290,7 +290,7 @@ public class BencherApp {
             }
 
             if (Boolean.parseBoolean(System.getProperty("generate.only", "False"))) {
-                System.out.printf("Generate only requested, not running benchmark \"%s\"", title);
+                System.out.printf("Generate only requested, not running benchmark \"%s\".\n", title);
                 continue;
             }
             final JSONObject benchmarkObject;
@@ -301,7 +301,7 @@ public class BencherApp {
                 } else {
                     benchmarkObject = (JSONObject) benchmarkDefinition.get("benchmark");
                     if (benchmarkObject == null) {
-                        System.err.printf(me + ": There is no \"benchmark_file\" or \"benchmark\" definition in \"%s\"\n",
+                        System.err.printf(me + ": There is no \"benchmark_file\" or \"benchmark\" definition in \"%s\".\n",
                                 jobFile.getAbsolutePath());
                         System.exit(1);
                     }
@@ -311,7 +311,7 @@ public class BencherApp {
                 if (benchFilename != null) {
                     System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex.getMessage());
                 } else {
-                    System.err.printf(me + ": Couldnt read benchmark: %s", ex.getMessage());
+                    System.err.printf(me + ": Couldnt read benchmark: %s.\n", ex.getMessage());
                 }
                 System.exit(1);
             } catch (ParseException ex) {

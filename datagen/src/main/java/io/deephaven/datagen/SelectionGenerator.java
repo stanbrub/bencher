@@ -12,39 +12,26 @@ import java.util.Locale;
 import java.util.Random;
 
 public class SelectionGenerator extends DataGenerator {
-
-    DistributionType distribution;
-    PercentNullManager percent_null;
-    String fileName;
-    ArrayList<String> strings;
-    Random pnrg;
-    GeneratorStringIterator stringIterator;
-    GeneratorObjectIterator objectIterator;
-
     enum DistributionType {
         NORMAL,
         UNIFORM,
         INDICATED,
     }
 
+    final DistributionType distribution;
+    final PercentNullManager percent_null;
+    final ArrayList<String> strings;
+    final Random prng;
+    final GeneratorObjectIterator objectIterator;
+
     private SelectionGenerator(ColumnType columnType, String fileName, DistributionType distribution, long seed, double percent_null) {
 
         this.distribution = distribution;
         this.columnType = columnType;
 
-        this.fileName = fileName;
-
         this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
 
-        pnrg = new Random(seed);
-
-        initialize();
-
-        stringIterator = new GeneratorStringIterator();
-        objectIterator = new GeneratorObjectIterator();
-    }
-
-    private void initialize() {
+        prng = new Random(seed);
 
         strings = new ArrayList<>();
 
@@ -59,11 +46,8 @@ public class SelectionGenerator extends DataGenerator {
             System.err.printf("IOException while reading %s: %s", fileName, e.getMessage());
             throw new IllegalStateException();
         }
-    }
 
-    @Override
-    int getCapacity() {
-        return -1;
+        objectIterator = new GeneratorObjectIterator();
     }
 
     static DataGenerator fromJson(String fieldName, JSONObject jo) {
@@ -112,12 +96,7 @@ public class SelectionGenerator extends DataGenerator {
     }
 
     @Override
-    public Iterator<String> getStringIterator() {
-        return stringIterator;
-    }
-
-    @Override
-    public Iterator<Object> getObjectIterator() {
+    public Iterator<Object> getIterator() {
         return objectIterator;
     }
 
@@ -128,7 +107,7 @@ public class SelectionGenerator extends DataGenerator {
 
         int idx;
         do {
-            double val = pnrg.nextGaussian() * dev + mean;
+            double val = prng.nextGaussian() * dev + mean;
             idx = (int) Math.round(val);
         } while (idx < 0 || idx >= strings.size() );
 
@@ -146,7 +125,7 @@ public class SelectionGenerator extends DataGenerator {
                 break;
 
             case UNIFORM:
-                result = pnrg.nextInt(strings.size());
+                result = prng.nextInt(strings.size());
                 break;
 
             case INDICATED:
@@ -159,28 +138,6 @@ public class SelectionGenerator extends DataGenerator {
 
         return result;
     }
-
-    private class GeneratorStringIterator implements Iterator<String> {
-
-        @Override
-        public boolean hasNext() {
-            return true;
-        }
-
-        @Override
-        public String next() {
-            // generate something
-            int idx = getNextIndex();
-
-            // but possibly discard it
-            if (percent_null != null && percent_null.test()) {
-                return "";
-            }
-
-            return strings.get(idx);
-        }
-    }
-
 
     private class GeneratorObjectIterator implements Iterator<Object> {
 

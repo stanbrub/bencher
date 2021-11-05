@@ -16,18 +16,15 @@ import java.util.Random;
  */
 public class FullRangeGenerator extends DataGenerator {
 
-    private long start;
-    private long stop;
-    private long seed;
+    private final long start;
+    private final long stop;
     private long current;
     private int capacity;
-    private PercentNullManager percent_null;
-    private Ordering order;
-    private Random prng;
-    private ArrayList<Long> deck;
+    private final PercentNullManager percent_null;
+    private final Ordering order;
+    private final Random prng;
     private Iterator<Long> deckIterator;
-    private GeneratorStringIterator stringIterator;
-    private GeneratorObjectIterator objectIterator;
+    private final GeneratorObjectIterator objectIterator;
 
     enum Ordering {
         INCREASING,
@@ -41,7 +38,6 @@ public class FullRangeGenerator extends DataGenerator {
             throw new IllegalArgumentException(String.format("start %d must be lower than stop %d", start, stop));
         this.start = start;
         this.stop = stop;
-        this.seed = seed;
         this.prng = new Random(seed);
         this.order = ordering;
         this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
@@ -50,7 +46,6 @@ public class FullRangeGenerator extends DataGenerator {
 
         initialize();
 
-        stringIterator = new GeneratorStringIterator();
         objectIterator = new GeneratorObjectIterator();
     }
 
@@ -61,7 +56,7 @@ public class FullRangeGenerator extends DataGenerator {
         if (order == Ordering.SHUFFLED) {
 
             // start with all the integers in order
-            deck = new ArrayList<Long>(capacity);
+            ArrayList<Long> deck = new ArrayList<Long>(capacity);
             for (long n = start; n <= stop; ++n) {
                 deck.add(n);
             }
@@ -88,14 +83,22 @@ public class FullRangeGenerator extends DataGenerator {
         }
     }
 
-    @Override
-    int getCapacity() {
-        return capacity;
-    }
-
     static FullRangeGenerator fromJson(String fieldName, JSONObject jo) {
 
         ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
+        switch (columnType) {
+            case DOUBLE:
+            case INT32:
+            case INT64:
+                break;
+            case STRING:
+            case TIMESTAMP_NANOS:
+                throw new IllegalArgumentException(
+                        "Only column types DOUBLE, INT32 or INT64 are supported for " +
+                                FullRangeGenerator.class.getSimpleName());
+            default:
+                throw new IllegalStateException("Missing types");
+        }
 
         Ordering order = Ordering.INCREASING;
         String ordering = (String) jo.get("order");
@@ -163,36 +166,10 @@ public class FullRangeGenerator extends DataGenerator {
     }
 
     @Override
-    public Iterator<String> getStringIterator() {
-        return stringIterator;
-    }
-
-    @Override
-    public Iterator<Object> getObjectIterator() {
+    public Iterator<Object> getIterator() {
         return objectIterator;
     }
 
-
-    private class GeneratorStringIterator implements Iterator<String> {
-
-        @Override
-        public boolean hasNext() {
-            return generatorHasNext();
-        }
-
-        @Override
-        public String next() {
-            // consume from the iterator so the count is correct
-            long nextItem = generatorGetNext();
-
-            // even if we end up rolling a null
-            if (percent_null != null && percent_null.test()) {
-                return null;
-            }
-
-            return Long.toString(nextItem);
-        }
-    }
 
     private class GeneratorObjectIterator implements Iterator<Object> {
 
@@ -211,14 +188,16 @@ public class FullRangeGenerator extends DataGenerator {
                 return null;
             }
 
-            if (columnType == ColumnType.INT32)
-                return (int) nextItem;
-            else if (columnType == ColumnType.INT64)
-                return nextItem;
-            else if (columnType == ColumnType.DOUBLE)
-                return (double) nextItem;
-            else
-                throw new InternalError("Need to implement more types");
+            switch (columnType) {
+                case INT32:
+                    return (int) nextItem;
+                case INT64:
+                    return nextItem;
+                case DOUBLE:
+                    return (double) nextItem;
+                default:
+                    throw new IllegalStateException("Need to implement more types");
+            }
         }
     }
 

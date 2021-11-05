@@ -80,9 +80,8 @@ public class PercentNullManager {
      */
     public boolean test() {
 
-        if (prng_nulls != null) {
-            if (prng_nulls.nextDouble() < percent_null)
-                return true;
+        if (prng_nulls != null && prng_nulls.nextDouble() < percent_null) {
+            return true;
         }
 
         return false;

@@ -22,6 +22,9 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Duration;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalUnit;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
@@ -55,6 +58,8 @@ public class BencherApp {
         return sb.toString();
     }
 
+    private static final Duration sessionTimeout = Duration.ofMillis(Long.parseLong(System.getProperty("session.timeout.millis", "30000")));
+
     static Session getSession() {
 
         String target = System.getProperty("dh.endpoint", "localhost:10000");
@@ -73,6 +78,7 @@ public class BencherApp {
         //TODO: set execution timeout
         SessionImplConfig cfg = SessionImplConfig.builder()
                 .executor(scheduler)
+                .closeTimeout(sessionTimeout)
                 .channel(new DeephavenChannel(managedChannel))
                 .build();
 

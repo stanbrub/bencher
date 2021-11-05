@@ -116,7 +116,7 @@ public class DataGen {
             int i = 0;
             for (Map.Entry<String, DataGenerator> entry : entrySet) {
                 DataGenerator gen = entry.getValue();
-                final Iterator<Object> iter = gen.getObjectIterator();
+                final Iterator<Object> iter = gen.getIterator();
                 if (!iter.hasNext()) {
                     more = false;
                     break;
@@ -157,29 +157,26 @@ public class DataGen {
         outputFile.append('\n');
 
         for (boolean more = true; more; /* inside */ ) {
-
-            StringBuilder rowBuilder = new StringBuilder();
+            final StringBuilder rowBuilder = new StringBuilder();
             first = true;
             for (Map.Entry<String, DataGenerator> entry : generators.entrySet()) {
+                final String fieldName = entry.getKey();
+                final DataGenerator gen = entry.getValue();
 
-                String fieldName = entry.getKey();
-                DataGenerator gen = entry.getValue();
-
-                if (!gen.getStringIterator().hasNext()) {
-
+                if (!gen.getIterator().hasNext()) {
                     more = false;
                     break;
                 }
 
-                String str = gen.getStringIterator().next();
+                final Object val = gen.getIterator().next();
                 if (!first) {
                     rowBuilder.append(',');
                 } else {
                     first = false;
                 }
 
-                if (str != null)
-                    rowBuilder.append(str);
+                if (val != null)
+                    rowBuilder.append(val);
             }
 
             if (more) {

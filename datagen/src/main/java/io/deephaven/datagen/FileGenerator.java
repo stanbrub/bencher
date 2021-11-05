@@ -6,16 +6,17 @@ import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoField;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.Iterator;
-
 
 public class FileGenerator extends DataGenerator {
 
     PercentNullManager percent_null;
     ArrayList<String> strings;
     String fileName;
-    GeneratorStringIterator stringIterator;
     GeneratorObjectIterator objectIterator;
     int currentIndex;
 
@@ -29,7 +30,6 @@ public class FileGenerator extends DataGenerator {
 
         initialize();
 
-        stringIterator = new GeneratorStringIterator();
         objectIterator = new GeneratorObjectIterator();
     }
 
@@ -50,11 +50,6 @@ public class FileGenerator extends DataGenerator {
         }
 
         currentIndex = 0;
-    }
-
-    @Override
-    int getCapacity() {
-        return strings.size();
     }
 
     static DataGenerator fromJson(String fieldName, JSONObject jo) {
@@ -88,29 +83,7 @@ public class FileGenerator extends DataGenerator {
         return strings.get(currentIndex++);
     }
 
-    class GeneratorStringIterator  implements Iterator<String> {
-
-        @Override
-        public boolean hasNext() {
-            return generatorHasNext();
-        }
-
-        @Override
-        public String next() {
-            // generate something
-            String str = generatorGetNext();
-
-            // but possibly discard it
-            if (percent_null != null && percent_null.test()) {
-                return "";
-            }
-
-            return str;
-        }
-    }
-
     class GeneratorObjectIterator  implements Iterator<Object> {
-
         @Override
         public boolean hasNext() {
             return generatorHasNext();
@@ -123,10 +96,10 @@ public class FileGenerator extends DataGenerator {
 
             // but possibly discard it
             if (percent_null != null && percent_null.test()) {
-                return "";
+                return null;
             }
 
-            switch(columnType) {
+            switch (columnType) {
                 case INT32:
                     return Integer.parseInt(str);
                 case INT64:
@@ -135,6 +108,13 @@ public class FileGenerator extends DataGenerator {
                     return Double.parseDouble(str);
                 case STRING:
                     return str;
+                case TIMESTAMP_NANOS: {
+                    final TemporalAccessor t = DateTimeFormatter.ISO_DATE_TIME.parse(str);
+                    final long nanos =
+                            1000 * 1000 * 1000 * t.getLong(ChronoField.INSTANT_SECONDS) +
+                                    t.get(ChronoField.NANO_OF_SECOND);
+                    return new UnixTimestampNanos(nanos);
+                }
                 default:
                     throw new InternalError("Need to implement more types");
             }
@@ -142,12 +122,7 @@ public class FileGenerator extends DataGenerator {
     }
 
     @Override
-    public Iterator<String> getStringIterator() {
-        return stringIterator;
-    }
-
-    @Override
-    public Iterator<Object> getObjectIterator() {
+    public Iterator<Object> getIterator() {
         return objectIterator;
     }
 

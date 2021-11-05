@@ -41,7 +41,7 @@ public class CustomWriterSupport extends WriteSupport<Object[]> {
             final Object val = buffer[i];
             if (val != null) {
                 recordConsumer.startField(field, i);
-                PrimitiveType.PrimitiveTypeName ptn = cols.get(i).getPrimitiveType().getPrimitiveTypeName();
+                final PrimitiveType.PrimitiveTypeName ptn = cols.get(i).getPrimitiveType().getPrimitiveTypeName();
                 switch (ptn) {
                     case BOOLEAN:
                         recordConsumer.addBoolean((Boolean) val);
@@ -53,7 +53,16 @@ public class CustomWriterSupport extends WriteSupport<Object[]> {
                         recordConsumer.addInteger((Integer) val);
                         break;
                     case INT64:
-                        recordConsumer.addLong((Long) val);
+                        final long v;
+                        if (val instanceof DataGenerator.UnixTimestampNanos) {
+                            v = ((DataGenerator.UnixTimestampNanos) val).nanos;
+                        } else if (val instanceof Long) {
+                            v = (Long) val;
+                        } else {
+                            throw new IllegalStateException(
+                                    "Unknown object type: " + val.getClass().getCanonicalName() + " with value " + val);
+                        }
+                        recordConsumer.addLong(v);
                         break;
                     case BINARY:
                         recordConsumer.addBinary(stringToBinary((String) val));

@@ -11,128 +11,138 @@ import java.util.stream.LongStream;
 
 public class RandomGenerator extends DataGenerator {
 
-    private PercentNullManager percent_null;
-    private GeneratorObjectIterator objectIterator;
-    private GeneratorStringIterator stringIterator;
+    private final PercentNullManager percent_null;
+    private final GeneratorObjectIterator objectIterator;
 
-    private Random prng;
-    private DoubleStream ds = null;
-    private PrimitiveIterator.OfDouble dsi = null;
-    private IntStream is = null;
-    private PrimitiveIterator.OfInt isi = null;
-    private LongStream ls = null;
-    private PrimitiveIterator.OfLong lsi = null;
+    private final PrimitiveIterator<?, ?> it;
 
-    RandomGenerator(ColumnType columnType, int lower_bound, int upper_bound, long seed, double percent_null) {
-
+    private RandomGenerator(
+            final ColumnType columnType, final long seed, final double percent_null, final PrimitiveIterator<?, ?> it) {
         this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
-        this.prng = new Random(seed);
         objectIterator = new GeneratorObjectIterator();
-        stringIterator = new GeneratorStringIterator();
         this.columnType = columnType;
-
-        is = prng.ints(lower_bound, upper_bound);
-        isi = is.iterator();
+        this.it = it;
     }
 
-    RandomGenerator(ColumnType columnType, double lower_bound, double upper_bound, long seed, double percent_null) {
-
-        this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
-        this.prng = new Random(seed);
-        objectIterator = new GeneratorObjectIterator();
-        stringIterator = new GeneratorStringIterator();
-        this.columnType = columnType;
-
-        ds = prng.doubles(lower_bound, upper_bound);
-        dsi = ds.iterator();
+    static RandomGenerator ofUniformInt(
+            final ColumnType columnType,
+            final int lower_bound,
+            final int upper_bound,
+            final long seed,
+            final double percent_null
+    ) {
+        final IntStream is = new Random(seed).ints(lower_bound, upper_bound);
+        return new RandomGenerator(columnType, seed, percent_null, is.iterator());
     }
 
-    RandomGenerator(ColumnType columnType, long lower_bound, long upper_bound, long seed, double percent_null) {
+    static RandomGenerator ofUniformDouble(
+            final ColumnType columnType,
+            final double lower_bound,
+            final double upper_bound,
+            final long seed,
+            final double percent_null
+    ) {
+        final DoubleStream ds = new Random(seed).doubles(lower_bound, upper_bound);
+        return new RandomGenerator(columnType, seed, percent_null, ds.iterator());
+    }
 
-        this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
-        this.prng = new Random(seed);
-        objectIterator = new GeneratorObjectIterator();
-        stringIterator = new GeneratorStringIterator();
-        this.columnType = columnType;
-
-        ls = prng.longs(lower_bound, upper_bound);
-        lsi = ls.iterator();
+    static RandomGenerator ofUniformLong(
+            final ColumnType columnType,
+            final long lower_bound,
+            final long upper_bound,
+            final long seed,
+            final double percent_null
+    ) {
+        final LongStream ls = new Random(seed).longs(lower_bound, upper_bound);
+        return new RandomGenerator(columnType, seed, percent_null, ls.iterator());
     }
 
     @Override
-    int getCapacity() {
-        return -1;
-    }
-
-    @Override
-    public Iterator<String> getStringIterator() {
-        return stringIterator;
-    }
-
-    @Override
-    public Iterator<Object> getObjectIterator() {
+    public Iterator<Object> getIterator() {
         return objectIterator;
     }
 
+    static RandomGenerator fromJson(final String fieldName, final JSONObject jo) {
 
-    static RandomGenerator fromJson(String fieldName, JSONObject jo) {
+        final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
+        final double percent_null = PercentNullManager.parseJson(fieldName, jo);
 
-        ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
+        final Object jsonLower = jo.get("lower_bound");
+        if (jsonLower == null) {
+            throw new IllegalArgumentException("Missing \"lower_bound\" element");
+        } else if (! (jsonLower instanceof String)) {
+            throw new IllegalArgumentException("Wrong type for \"lower_bound\" element, should be string");
+        }
+        final String lower = (String) jsonLower;
 
-        double percent_null = PercentNullManager.parseJson(fieldName, jo);
+        final Object jsonUpper = jo.get("upper_bound");
+        if (jsonUpper == null) {
+            throw new IllegalArgumentException("Missing \"upper_bound\" element");
+        } else if (! (jsonUpper instanceof String)) {
+            throw new IllegalArgumentException("Wrong type for \"upper_bound\" element, should be string");
+        }
+        final String upper = (String) jsonUpper;
 
-        String lower = (String) jo.get("lower_bound");
-        String upper = (String) jo.get("upper_bound");
-
-        long seed = Long.parseLong((String) jo.get("seed"));
+        final Object jsonSeed = jo.get("seed");
+        if (jsonSeed == null) {
+            throw new IllegalArgumentException("Missing \"upper_bound\" element");
+        } else if (! (jsonSeed instanceof String)) {
+            throw new IllegalArgumentException("Wrong type for \"seed\" element, should be string");
+        }
+        final long seed;
+        try {
+            seed = Long.parseLong((String) jsonSeed);
+        } catch( NumberFormatException ex) {
+            throw new IllegalArgumentException(
+                    String.format("Can't convert element value \"%s\" for \"seed\" element", jsonSeed),
+                    ex);
+        }
 
         switch (columnType) {
             case DOUBLE:
             {
-                double lower_bound = Double.parseDouble(lower);
-                double upper_bound = Double.parseDouble(upper);
+                final double lower_bound = Double.parseDouble(lower);
+                final double upper_bound = Double.parseDouble(upper);
 
-                return new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
+                return RandomGenerator.ofUniformDouble(columnType, lower_bound, upper_bound, seed, percent_null);
             }
 
             case INT32:
             {
-                int lower_bound = Integer.parseInt(lower);
-                int upper_bound = Integer.parseInt(upper);
+                final int lower_bound = Integer.parseInt(lower);
+                final int upper_bound = Integer.parseInt(upper);
 
-                return new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
+                return RandomGenerator.ofUniformInt(columnType, lower_bound, upper_bound, seed, percent_null);
             }
 
             case INT64:
             {
-                long lower_bound = Long.parseLong(lower);
-                long upper_bound = Long.parseLong(upper);
+                final long lower_bound = Long.parseLong(lower);
+                final long upper_bound = Long.parseLong(upper);
 
-                return new RandomGenerator(columnType, lower_bound, upper_bound, seed, percent_null);
+                return RandomGenerator.ofUniformLong(columnType, lower_bound, upper_bound, seed, percent_null);
             }
 
             case STRING:
-            default:
+            case TIMESTAMP_NANOS:
                 throw new IllegalArgumentException(String.format("%s: output type %s is not supported", fieldName, columnType));
+            default:
+                throw new IllegalStateException("Missing column type");
         }
     }
 
-
     private Object getNext() {
         switch (columnType) {
-
             case DOUBLE:
-                return dsi.next();
-
             case INT32:
-                return isi.next();
-
             case INT64:
-                return lsi.next();
+                return it.next();
 
             case STRING:
+            case TIMESTAMP_NANOS:
+                throw new IllegalStateException(String.format("column type %s is not supported", columnType));
             default:
-                throw new InternalError(String.format("column type %s is not supported", columnType));
+                throw new IllegalStateException("Missing column type");
         }
     }
 
@@ -157,29 +167,5 @@ public class RandomGenerator extends DataGenerator {
             return o;
         }
     }
-
-    private class GeneratorStringIterator implements Iterator<String> {
-
-        @Override
-        public boolean hasNext() {
-            return true;
-        }
-
-        @Override
-        public String next() {
-
-            // consume from the iterator ...
-            Object o = getNext();
-
-            // even if we end up rolling a null
-            if (percent_null != null && percent_null.test()) {
-                return null;
-            }
-
-            return o.toString();
-        }
-    }
-
-
 }
 

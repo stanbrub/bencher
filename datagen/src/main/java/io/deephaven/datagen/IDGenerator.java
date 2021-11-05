@@ -8,17 +8,21 @@ import java.util.Locale;
 public class IDGenerator extends DataGenerator {
 
     private long currentID;
-    private PercentNullManager percent_null;
-    private GeneratorStringIterator stringIterator;
-    private GeneratorObjectIterator objectIterator;
-    private Increment increment;
+    private final PercentNullManager percent_null;
+    private final GeneratorObjectIterator objectIterator;
+    private final Increment increment;
 
     enum Increment {
         INCREASING,
         DECREASING,
     }
 
-    private IDGenerator(ColumnType columnType, long start_id, long seed, Increment increment, double percent_null) {
+    private IDGenerator(
+            final ColumnType columnType,
+            final long start_id,
+            final long seed,
+            final Increment increment,
+            final double percent_null) {
 
         this.currentID = start_id;
         this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
@@ -26,24 +30,31 @@ public class IDGenerator extends DataGenerator {
 
         this.increment = increment;
 
-        this.stringIterator = new GeneratorStringIterator();
         this.objectIterator = new GeneratorObjectIterator();
     }
 
 
-    @Override
-    int getCapacity() {
-        return -1;
-    }
+    static IDGenerator fromJson(final String fieldName, final JSONObject jo) {
+        final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
+        switch (columnType) {
+            case INT32:
+            case INT64:
+                break;
+            case DOUBLE:
+            case STRING:
+            case TIMESTAMP_NANOS:
+                throw new IllegalArgumentException(
+                        "Only column types INT32 or INT64 are supported for " +
+                                IDGenerator.class.getSimpleName());
+            default:
+                throw new IllegalStateException("Missing types");
+        }
 
-    static IDGenerator fromJson(String fieldName, JSONObject jo) {
-
-        ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
-
-        Increment increment = Increment.INCREASING;
-        String inc = (String) jo.get("increment");
+        final Increment increment;
+        final String inc = (String) jo.get("increment");
         if (inc == null) {
             System.err.printf("%s: increment not found, defaulting to Increasing\n", fieldName);
+            increment = Increment.INCREASING;
         } else {
             switch (inc.toUpperCase(Locale.ROOT)) {
                 case "INCREASING":
@@ -59,9 +70,9 @@ public class IDGenerator extends DataGenerator {
             }
         }
 
-        double percent_null = PercentNullManager.parseJson(fieldName, jo);
+        final double percent_null = PercentNullManager.parseJson(fieldName, jo);
 
-        IDGenerator frg = new IDGenerator(
+        final IDGenerator frg = new IDGenerator(
                 columnType,
                 Long.parseLong((String) jo.get("start_id")),
                 Long.parseLong((String) jo.get("seed")),
@@ -92,29 +103,6 @@ public class IDGenerator extends DataGenerator {
         return next;
     }
 
-    private class GeneratorStringIterator implements Iterator<String> {
-
-        @Override
-        public boolean hasNext() {
-            return true;
-        }
-
-        @Override
-        public String next() {
-
-            // consume from the iterator so the count is correct
-            long next = getNext();
-
-            // even if we end up rolling a null
-            if (percent_null != null && percent_null.test()) {
-                return null;
-            }
-
-            return Long.toString(next);
-        }
-    }
-
-
     private class GeneratorObjectIterator implements Iterator<Object> {
 
         @Override
@@ -137,8 +125,6 @@ public class IDGenerator extends DataGenerator {
                 return (int) next;
             else if (columnType == ColumnType.INT64)
                 return Long.toString(next);
-            else if (columnType == ColumnType.DOUBLE)
-                return (double) next;
             else
                 throw new InternalError("Need to implement more types");
         }
@@ -146,12 +132,7 @@ public class IDGenerator extends DataGenerator {
 
 
     @Override
-    public Iterator<String> getStringIterator() {
-        return stringIterator;
-    }
-
-    @Override
-    public Iterator<Object> getObjectIterator() {
+    public Iterator<Object> getIterator() {
         return objectIterator;
     }
 

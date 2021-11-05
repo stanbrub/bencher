@@ -6,6 +6,8 @@ import org.apache.parquet.schema.Type;
 import org.apache.parquet.schema.Types;
 import org.json.simple.JSONObject;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -29,11 +31,20 @@ public abstract class DataGenerator {
         STRING,
         INT32,
         INT64,
+        TIMESTAMP_NANOS,
     };
 
-    protected ColumnType columnType;
+    public static final class UnixTimestampNanos {
+        final long nanos;
+        public UnixTimestampNanos(final long nanos) {
+            this.nanos = nanos;
+        }
+        @Override public String toString() {
+            return DateTimeFormatter.ISO_OFFSET_DATE_TIME.format(Instant.ofEpochSecond(0, nanos));
+        }
+    }
 
-    abstract int getCapacity();
+    protected ColumnType columnType;
 
     /**
      * Creates a DataGenerator object from a JSON representation.
@@ -42,7 +53,7 @@ public abstract class DataGenerator {
      * @param jo            JSONObject containing the JSON representation we'll consume
      * @return              an initialized DataGenerator; null if something got sick
      */
-    static DataGenerator fromJson(String fieldName, JSONObject jo) {
+    static DataGenerator fromJson(final String fieldName, final JSONObject jo) {
 
         if (jo == null) {
             throw new IllegalArgumentException("need a JSONObject");
@@ -53,34 +64,25 @@ public abstract class DataGenerator {
             throw new IllegalArgumentException(String.format("%s: generation_type must be supplied", fieldName));
         }
 
-        DataGenerator gen = null;
-
         switch (generation_type.toLowerCase(Locale.ROOT)) {
             case "full_range":
-                gen = FullRangeGenerator.fromJson(fieldName, jo);
-                break;
+                return FullRangeGenerator.fromJson(fieldName, jo);
 
             case "selection":
-                gen = SelectionGenerator.fromJson(fieldName, jo);
-                break;
+                return SelectionGenerator.fromJson(fieldName, jo);
 
             case "random":
-                gen = RandomGenerator.fromJson(fieldName, jo);
-                break;
+                return RandomGenerator.fromJson(fieldName, jo);
 
             case "file":
-                gen = FileGenerator.fromJson(fieldName, jo);
-                break;
+                return FileGenerator.fromJson(fieldName, jo);
 
             case "id":
-                gen = IDGenerator.fromJson(fieldName, jo);
-                break;
+                return IDGenerator.fromJson(fieldName, jo);
 
             default:
                 throw new IllegalArgumentException(String.format("%s: Unexpected generation_type of %s", fieldName, generation_type));
         }
-
-        return gen;
     }
 
     /**
@@ -89,19 +91,18 @@ public abstract class DataGenerator {
      * @param jo        JSONObject of the definition we're reading
      * @return          a ColumnType enum from the JSON representation
      */
-    static protected ColumnType columnTypeFromJson(JSONObject jo) {
-
-        String type = (String) jo.get("type");
-        ColumnType columnType = ColumnType.STRING;
+    static protected ColumnType columnTypeFromJson(final JSONObject jo) {
+        final String type = (String) jo.get("type");
+        final ColumnType columnType;
         if (type == null) {
             System.err.printf("No column type specified; defaulting to string\n");
+            columnType = ColumnType.STRING;
         } else {
             columnType = Enum.valueOf(ColumnType.class, type);
         }
 
         return columnType;
     }
-
 
     /**
      * Helper to convert from one of our types to a Parquet Type.
@@ -111,7 +112,6 @@ public abstract class DataGenerator {
      * @return              Parquet Type corresponding to the provided ColumnType
      */
     static public Type parquetTypeFromJSONType(ColumnType columnType, String columnName) {
-
         switch (columnType) {
             case DOUBLE:
                 return Types.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(columnName);
@@ -120,7 +120,14 @@ public abstract class DataGenerator {
             case INT64:
                 return Types.optional(PrimitiveType.PrimitiveTypeName.INT64).named(columnName);
             case STRING:
-                return Types.optional(PrimitiveType.PrimitiveTypeName.BINARY).as(LogicalTypeAnnotation.StringLogicalTypeAnnotation.stringType()).named(columnName);
+                return Types.optional(PrimitiveType.PrimitiveTypeName.BINARY)
+                        .as(LogicalTypeAnnotation.StringLogicalTypeAnnotation.stringType())
+                        .named(columnName);
+            case TIMESTAMP_NANOS:
+                return Types.optional(PrimitiveType.PrimitiveTypeName.INT64)
+                        .as(LogicalTypeAnnotation.TimestampLogicalTypeAnnotation.timestampType(
+                                true, LogicalTypeAnnotation.TimeUnit.NANOS))
+                        .named(columnName);
             default:
                 throw new IllegalArgumentException("need to add support for ColumnType." + columnType);
         }
@@ -131,17 +138,10 @@ public abstract class DataGenerator {
     }
 
     /**
-     * Gets an Iterator for this generator that produces strings.
-     *
-     * @return  An intialized Iterator, ready to go.
-     */
-    public abstract Iterator<String> getStringIterator();
-
-    /**
      * Gets an Iterator for this generator that produces objects.
      *
      * @return  An intialized Iterator, ready to go.
      */
-    public abstract Iterator<Object> getObjectIterator();
+    public abstract Iterator<Object> getIterator();
 }
 

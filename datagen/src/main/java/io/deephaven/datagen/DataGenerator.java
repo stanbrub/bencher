@@ -59,10 +59,7 @@ public abstract class DataGenerator {
             throw new IllegalArgumentException("need a JSONObject");
         }
 
-        String generation_type = (String) jo.get("generation_type");
-        if (generation_type == null) {
-            throw new IllegalArgumentException(String.format("%s: generation_type must be supplied", fieldName));
-        }
+        final String generation_type = Utils.getStringElementValue("generation_type", jo);
 
         switch (generation_type.toLowerCase(Locale.ROOT)) {
             case "full_range":
@@ -75,7 +72,7 @@ public abstract class DataGenerator {
                 return RandomGenerator.fromJson(fieldName, jo);
 
             case "file":
-                return FileGenerator.fromJson(fieldName, jo);
+                return ExplicitListGenerator.fromJsonFileGenerator(fieldName, jo);
 
             case "id":
                 return IDGenerator.fromJson(fieldName, jo);

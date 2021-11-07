@@ -8,7 +8,7 @@ import java.util.Locale;
 public class IDGenerator extends DataGenerator {
 
     private long currentID;
-    private final PercentNullManager percent_null;
+    private final PercentNullManager pctNullMgr;
     private final GeneratorObjectIterator objectIterator;
     private final Increment increment;
 
@@ -22,10 +22,10 @@ public class IDGenerator extends DataGenerator {
             final long start_id,
             final long seed,
             final Increment increment,
-            final double percent_null) {
+            final double pctNullMgr) {
 
         this.currentID = start_id;
-        this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
+        this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
         this.columnType = columnType;
 
         this.increment = increment;
@@ -117,7 +117,7 @@ public class IDGenerator extends DataGenerator {
             long next = getNext();
 
             // even if we end up rolling a null
-            if (percent_null != null && percent_null.test()) {
+            if (pctNullMgr.test()) {
                 return null;
             }
 

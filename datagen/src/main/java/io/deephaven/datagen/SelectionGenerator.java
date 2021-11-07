@@ -19,17 +19,17 @@ public class SelectionGenerator extends DataGenerator {
     }
 
     final DistributionType distribution;
-    final PercentNullManager percent_null;
+    final PercentNullManager pctNullMgr;
     final ArrayList<String> strings;
     final Random prng;
     final GeneratorObjectIterator objectIterator;
 
-    private SelectionGenerator(ColumnType columnType, String fileName, DistributionType distribution, long seed, double percent_null) {
+    private SelectionGenerator(ColumnType columnType, String fileName, DistributionType distribution, long seed, double pctNullMgr) {
 
         this.distribution = distribution;
         this.columnType = columnType;
 
-        this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
+        this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
 
         prng = new Random(seed);
 
@@ -54,7 +54,7 @@ public class SelectionGenerator extends DataGenerator {
 
         ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
 
-        SelectionGenerator.DistributionType distributionType = null;
+        final SelectionGenerator.DistributionType distributionType;
 
         String distribution = (String) jo.get("distribution");
         if (distribution == null) {
@@ -74,7 +74,8 @@ public class SelectionGenerator extends DataGenerator {
                     break;
 
                 default:
-                    throw new IllegalArgumentException(String.format("Distribution must be one of Normal, Uniform, or Indicated; found \"%s\"", distribution));
+                    throw new IllegalArgumentException(String.format(
+                            "Distribution must be one of Normal, Uniform, or Indicated; found \"%s\"", distribution));
             }
         }
 
@@ -152,7 +153,7 @@ public class SelectionGenerator extends DataGenerator {
             int idx = getNextIndex();
 
             // but possibly discard it
-            if (percent_null != null && percent_null.test()) {
+            if (pctNullMgr.test()) {
                 return "";
             }
 

@@ -11,14 +11,14 @@ import java.util.stream.LongStream;
 
 public class RandomGenerator extends DataGenerator {
 
-    private final PercentNullManager percent_null;
+    private final PercentNullManager pctNullMgr;
     private final GeneratorObjectIterator objectIterator;
 
     private final PrimitiveIterator<?, ?> it;
 
     private RandomGenerator(
-            final ColumnType columnType, final long seed, final double percent_null, final PrimitiveIterator<?, ?> it) {
-        this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
+            final ColumnType columnType, final long seed, final double pctNullMgr, final PrimitiveIterator<?, ?> it) {
+        this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
         objectIterator = new GeneratorObjectIterator();
         this.columnType = columnType;
         this.it = it;
@@ -152,6 +152,77 @@ public class RandomGenerator extends DataGenerator {
         });
     }
 
+    private static int minusOneOrOne(final Random prng) {
+        final int zeroOrOne = prng.nextInt(2);
+        final int minusOneOrOne = 2 * zeroOrOne - 1;
+        return minusOneOrOne;
+    }
+
+    static RandomGenerator ofRandomWalkInt(
+            final int initial,
+            final int step,
+            final long seed,
+            final double percent_null
+    ) {
+        return new RandomGenerator(ColumnType.INT32, seed, percent_null, new PrimitiveIterator.OfInt() {
+            final Random prng = new Random(seed);
+            int current = initial;
+            @Override
+            public int nextInt() {
+                current += minusOneOrOne(prng) * step;
+                return current;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
+
+    static RandomGenerator ofRandomWalkLong(
+            final long initial,
+            final long step,
+            final long seed,
+            final double percent_null
+    ) {
+        return new RandomGenerator(ColumnType.INT64, seed, percent_null, new PrimitiveIterator.OfLong() {
+            final Random prng = new Random(seed);
+            long current = initial;
+            @Override
+            public long nextLong() {
+                current += minusOneOrOne(prng) * step;
+                return current;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
+
+    static RandomGenerator ofRandomWalkDouble(
+            final double initial,
+            final double step,
+            final long seed,
+            final double percent_null
+    ) {
+        return new RandomGenerator(ColumnType.DOUBLE, seed, percent_null, new PrimitiveIterator.OfDouble() {
+            final Random prng = new Random(seed);
+            double current = initial;
+            @Override
+            public double nextDouble() {
+                current += minusOneOrOne(prng) * step;
+                return current;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
 
     @Override
     public Iterator<Object> getIterator() {
@@ -263,6 +334,39 @@ public class RandomGenerator extends DataGenerator {
         }
     }
 
+    static RandomGenerator randomWalkFromJson(
+            final String fieldName,
+            final JSONObject jo,
+            final ColumnType columnType,
+            final double percentNull,
+            final long seed) {
+        switch (columnType) {
+            case INT32: {
+                final int initial = Utils.getIntElementValue("initial", jo);
+                final int step = Utils.getIntElementValue("step", jo);
+                return RandomGenerator.ofRandomWalkInt(initial, step, seed, percentNull);
+            }
+            case INT64: {
+                final long initial = Utils.getLongElementValue("initial", jo);
+                final long step = Utils.getLongElementValue("step", jo);
+                return RandomGenerator.ofRandomWalkLong(initial, step, seed, percentNull);
+            }
+            case DOUBLE: {
+                final double initial = Utils.getDoubleElementValue("initial", jo);
+                final double step = Utils.getDoubleElementValue("step", jo);
+                return RandomGenerator.ofRandomWalkDouble(initial, step, seed, percentNull);
+            }
+            case TIMESTAMP_NANOS:
+            case STRING:
+                throw new IllegalArgumentException(String.format(
+                        "%s: output type %s is not supported for poisson-wait distribution",
+                        fieldName, columnType));
+            default:
+                throw new IllegalStateException("Missing column type");
+        }
+    }
+
+
     static RandomGenerator fromJson(final String fieldName, final JSONObject jo) {
 
         final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
@@ -278,8 +382,10 @@ public class RandomGenerator extends DataGenerator {
                 return uniformFromJson(fieldName, jo, columnType, percentNull, seed);
             case "normal":
                 return normalFromJson(fieldName, jo, columnType, percentNull, seed);
-            case "poisson-wait":
+            case "poisson_wait":
                 return poissonWaitFromJson(fieldName, jo, columnType, percentNull, seed);
+            case "random_walk":
+                return randomWalkFromJson(fieldName, jo, columnType, percentNull, seed);
             default:
                 throw new IllegalArgumentException(String.format(
                         "Unrecognized value \"%s\" for \"distribution\" element", distribution));
@@ -303,7 +409,7 @@ public class RandomGenerator extends DataGenerator {
             Object o = getNext();
 
             // even if we end up rolling a null
-            if (percent_null != null && percent_null.test()) {
+            if (pctNullMgr.test()) {
                 return null;
             }
 

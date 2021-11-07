@@ -20,7 +20,7 @@ public class FullRangeGenerator extends DataGenerator {
     private final long stop;
     private long current;
     private int capacity;
-    private final PercentNullManager percent_null;
+    private final PercentNullManager pctNullMgr;
     private final Ordering order;
     private final Random prng;
     private Iterator<Long> deckIterator;
@@ -32,7 +32,7 @@ public class FullRangeGenerator extends DataGenerator {
         SHUFFLED,
     }
 
-    private FullRangeGenerator(ColumnType columnType, long start, long stop, long seed, Ordering ordering, double percent_null) {
+    private FullRangeGenerator(ColumnType columnType, long start, long stop, long seed, Ordering ordering, double pctNullMgr) {
 
         if (stop < start)
             throw new IllegalArgumentException(String.format("start %d must be lower than stop %d", start, stop));
@@ -40,7 +40,7 @@ public class FullRangeGenerator extends DataGenerator {
         this.stop = stop;
         this.prng = new Random(seed);
         this.order = ordering;
-        this.percent_null = PercentNullManager.fromPercentage(percent_null, seed);
+        this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
 
         this.columnType = columnType;
 
@@ -184,7 +184,7 @@ public class FullRangeGenerator extends DataGenerator {
             long nextItem = generatorGetNext();
 
             // even if we end up rolling a null
-            if (percent_null != null && percent_null.test()) {
+            if (pctNullMgr.test()) {
                 return null;
             }
 

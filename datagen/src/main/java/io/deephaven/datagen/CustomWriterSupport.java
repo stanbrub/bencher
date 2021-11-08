@@ -34,7 +34,7 @@ public class CustomWriterSupport extends WriteSupport<Object[]> {
         this.recordConsumer = recordConsumer;
     }
 
-    public void write(Object[] buffer) {
+    public void write(final Object[] buffer) {
         recordConsumer.startMessage();
         for (int i = 0; i < ncols; ++i) {
             final String field = cols.get(i).getPath()[0];

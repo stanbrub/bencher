@@ -2,9 +2,7 @@ package io.deephaven.datagen;
 
 import org.json.simple.JSONObject;
 
-import java.util.Iterator;
-import java.util.PrimitiveIterator;
-import java.util.Random;
+import java.util.*;
 import java.util.stream.DoubleStream;
 import java.util.stream.IntStream;
 import java.util.stream.LongStream;
@@ -14,10 +12,10 @@ public class RandomGenerator extends DataGenerator {
     private final PercentNullManager pctNullMgr;
     private final GeneratorObjectIterator objectIterator;
 
-    private final PrimitiveIterator<?, ?> it;
+    private final Iterator<?> it;
 
     private RandomGenerator(
-            final ColumnType columnType, final long seed, final double pctNullMgr, final PrimitiveIterator<?, ?> it) {
+            final ColumnType columnType, final long seed, final double pctNullMgr, final Iterator<?> it) {
         this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
         objectIterator = new GeneratorObjectIterator();
         this.columnType = columnType;
@@ -26,34 +24,34 @@ public class RandomGenerator extends DataGenerator {
 
     static RandomGenerator ofUniformInt(
             final ColumnType columnType,
-            final int lower_bound,
-            final int upper_bound,
+            final int lowerBound,
+            final int upperBound,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
-        final IntStream is = new Random(seed).ints(lower_bound, upper_bound);
-        return new RandomGenerator(columnType, seed, percent_null, is.iterator());
+        final IntStream is = new Random(seed).ints(lowerBound, upperBound);
+        return new RandomGenerator(columnType, seed, percentNull, is.iterator());
     }
 
     static RandomGenerator ofUniformDouble(
             final ColumnType columnType,
-            final double lower_bound,
-            final double upper_bound,
+            final double lowerBound,
+            final double upperBound,
             final long seed,
             final double percent_null
     ) {
-        final DoubleStream ds = new Random(seed).doubles(lower_bound, upper_bound);
+        final DoubleStream ds = new Random(seed).doubles(lowerBound, upperBound);
         return new RandomGenerator(columnType, seed, percent_null, ds.iterator());
     }
 
     static RandomGenerator ofUniformLong(
             final ColumnType columnType,
-            final long lower_bound,
-            final long upper_bound,
+            final long lowerBound,
+            final long upperBound,
             final long seed,
             final double percent_null
     ) {
-        final LongStream ls = new Random(seed).longs(lower_bound, upper_bound);
+        final LongStream ls = new Random(seed).longs(lowerBound, upperBound);
         return new RandomGenerator(columnType, seed, percent_null, ls.iterator());
     }
 
@@ -61,9 +59,9 @@ public class RandomGenerator extends DataGenerator {
             final double mean,
             final double stddev,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
-        return new RandomGenerator(ColumnType.DOUBLE, seed, percent_null, new PrimitiveIterator.OfDouble() {
+        return new RandomGenerator(ColumnType.DOUBLE, seed, percentNull, new PrimitiveIterator.OfDouble() {
             final Random prng = new Random(seed);
             boolean havePrecomputed = false;
             double precomputed;
@@ -105,16 +103,16 @@ public class RandomGenerator extends DataGenerator {
 
     static RandomGenerator ofPoissonWait(
             final long startNanos,
-            final long periodNanos,
+            final long meanWaitNanos,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
-        if (periodNanos <= 0) {
-            throw new IllegalArgumentException(String.format("period_nanos (=%d) should be > 0.", periodNanos));
+        if (meanWaitNanos <= 0) {
+            throw new IllegalArgumentException(String.format("period_nanos (=%d) should be > 0.", meanWaitNanos));
         }
-        return new RandomGenerator(ColumnType.TIMESTAMP_NANOS, seed, percent_null, new PrimitiveIterator.OfLong() {
+        return new RandomGenerator(ColumnType.TIMESTAMP_NANOS, seed, percentNull, new PrimitiveIterator.OfLong() {
             final Random prng = new Random(seed);
-            final double period = (double) periodNanos;
+            final double period = (double) meanWaitNanos;
             long current = startNanos;
             @Override
             public long nextLong() {
@@ -132,12 +130,12 @@ public class RandomGenerator extends DataGenerator {
     static RandomGenerator ofExponential(
             final double lambda,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
         if (lambda <= 0) {
             throw new IllegalArgumentException(String.format("lambda (=%g) should be > 0", lambda));
         }
-        return new RandomGenerator(ColumnType.DOUBLE, seed, percent_null, new PrimitiveIterator.OfDouble() {
+        return new RandomGenerator(ColumnType.DOUBLE, seed, percentNull, new PrimitiveIterator.OfDouble() {
             final Random prng = new Random(seed);
             final double inverseLambda = 1.0 / lambda;
             @Override
@@ -162,9 +160,9 @@ public class RandomGenerator extends DataGenerator {
             final int initial,
             final int step,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
-        return new RandomGenerator(ColumnType.INT32, seed, percent_null, new PrimitiveIterator.OfInt() {
+        return new RandomGenerator(ColumnType.INT32, seed, percentNull, new PrimitiveIterator.OfInt() {
             final Random prng = new Random(seed);
             int current = initial;
             @Override
@@ -184,9 +182,9 @@ public class RandomGenerator extends DataGenerator {
             final long initial,
             final long step,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
-        return new RandomGenerator(ColumnType.INT64, seed, percent_null, new PrimitiveIterator.OfLong() {
+        return new RandomGenerator(ColumnType.INT64, seed, percentNull, new PrimitiveIterator.OfLong() {
             final Random prng = new Random(seed);
             long current = initial;
             @Override
@@ -206,15 +204,59 @@ public class RandomGenerator extends DataGenerator {
             final double initial,
             final double step,
             final long seed,
-            final double percent_null
+            final double percentNull
     ) {
-        return new RandomGenerator(ColumnType.DOUBLE, seed, percent_null, new PrimitiveIterator.OfDouble() {
+        return new RandomGenerator(ColumnType.DOUBLE, seed, percentNull, new PrimitiveIterator.OfDouble() {
             final Random prng = new Random(seed);
             double current = initial;
             @Override
             public double nextDouble() {
                 current += minusOneOrOne(prng) * step;
                 return current;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return true;
+            }
+        });
+    }
+
+    static int[] accumWeights(final ArrayList<Integer> weights, final int size) {
+        final int[] accumWeights = new int[size];
+        int accum = 0;
+        for (int i = 0; i < size; ++i) {
+            final int wi = (weights == null) ? 1 : weights.get(i);
+            accum += wi;
+            accumWeights[i] = accum;
+        }
+        return accumWeights;
+    }
+
+    static <T> RandomGenerator ofRandomPick(
+            final ColumnType columnType,
+            final ArrayList<T> options,
+            final ArrayList<Integer> weights,
+            final long seed,
+            final double percentNull
+    ) {
+        if (weights != null && options.size() != weights.size()) {
+            throw new IllegalArgumentException(String.format(
+                    "length of options list (=%d) and weights list (%d) should match.",
+                    options.size(),
+                    weights.size()));
+        }
+        return new RandomGenerator(columnType, seed, percentNull, new Iterator<T>() {
+            final Random prng = new Random(seed);
+            final int[] accumWeights = accumWeights(weights, options.size());
+            @Override
+            public T next() {
+                final int weightedPick = prng.nextInt(accumWeights[accumWeights.length - 1]);
+                int pos = Arrays.binarySearch(accumWeights, weightedPick);
+                if (pos < 0) {
+                    pos = ~pos;
+                }
+                return options.get(pos);
             }
 
             @Override
@@ -233,29 +275,30 @@ public class RandomGenerator extends DataGenerator {
             final String fieldName,
             final JSONObject jo,
             final ColumnType columnType,
-            final double percentNull,
-            final long seed) {
+            final long seed,
+            final double percentNull
+    ) {
 
         switch (columnType) {
             case INT32: {
-                final int lower_bound = Utils.getIntElementValue("lower_bound", jo);
-                final int upper_bound = Utils.getIntElementValue("upper_bound", jo);
+                final int lowerBound = Utils.getIntElementValue("lower_bound", jo);
+                final int upperBound = Utils.getIntElementValue("upper_bound", jo);
 
-                return RandomGenerator.ofUniformInt(columnType, lower_bound, upper_bound, seed, percentNull);
+                return RandomGenerator.ofUniformInt(columnType, lowerBound, upperBound, seed, percentNull);
             }
 
             case INT64: {
-                final long lower_bound = Utils.getLongElementValue("lower_bound", jo);
-                final long upper_bound = Utils.getLongElementValue("upper_bound", jo);
+                final long lowerBound = Utils.getLongElementValue("lower_bound", jo);
+                final long upperBound = Utils.getLongElementValue("upper_bound", jo);
 
-                return RandomGenerator.ofUniformLong(columnType, lower_bound, upper_bound, seed, percentNull);
+                return RandomGenerator.ofUniformLong(columnType, lowerBound, upperBound, seed, percentNull);
             }
 
             case DOUBLE: {
-                final double lower_bound = Utils.getDoubleElementValue("lower_bound", jo);
-                final double upper_bound = Utils.getDoubleElementValue("upper_bound", jo);
+                final double lowerBound = Utils.getDoubleElementValue("lower_bound", jo);
+                final double upperBound = Utils.getDoubleElementValue("upper_bound", jo);
 
-                return RandomGenerator.ofUniformDouble(columnType, lower_bound, upper_bound, seed, percentNull);
+                return RandomGenerator.ofUniformDouble(columnType, lowerBound, upperBound, seed, percentNull);
             }
 
             case STRING:
@@ -270,8 +313,9 @@ public class RandomGenerator extends DataGenerator {
             final String fieldName,
             final JSONObject jo,
             final ColumnType columnType,
-            final double percentNull,
-            final long seed) {
+            final long seed,
+            final double percentNull
+    ) {
         final double mean = Utils.getDoubleElementValue("mean", jo);
         final double stddev = Utils.getDoubleElementValue("stddev", jo);
         switch (columnType) {
@@ -293,8 +337,9 @@ public class RandomGenerator extends DataGenerator {
             final String fieldName,
             final JSONObject jo,
             final ColumnType columnType,
-            final double percentNull,
-            final long seed) {
+            final long seed,
+            final double percentNull
+    ) {
         final double lambda = Utils.getDoubleElementValue("lambda", jo);
         switch (columnType) {
             case DOUBLE:
@@ -315,19 +360,20 @@ public class RandomGenerator extends DataGenerator {
             final String fieldName,
             final JSONObject jo,
             final ColumnType columnType,
-            final double percentNull,
-            final long seed) {
+            final long seed,
+            final double percentNull
+    ) {
         final long startNanos = Utils.getLongElementValue("start_nanos", jo);
-        final long periodNanos = Utils.getLongElementValue("period_nanos", jo);
+        final long meanWaitNanos = Utils.getLongElementValue("mean_wait_nanos", jo);
         switch (columnType) {
             case TIMESTAMP_NANOS:
-                return RandomGenerator.ofPoissonWait(startNanos, periodNanos, seed, percentNull);
+                return RandomGenerator.ofPoissonWait(startNanos, meanWaitNanos, seed, percentNull);
             case INT32:
             case INT64:
             case DOUBLE:
             case STRING:
                 throw new IllegalArgumentException(String.format(
-                        "%s: output type %s is not supported for poisson-wait distribution",
+                        "%s: output type %s is not supported for poisson_wait distribution",
                         fieldName, columnType));
             default:
                 throw new IllegalStateException("Missing column type");
@@ -338,8 +384,9 @@ public class RandomGenerator extends DataGenerator {
             final String fieldName,
             final JSONObject jo,
             final ColumnType columnType,
-            final double percentNull,
-            final long seed) {
+            final long seed,
+            final double percentNull
+    ) {
         switch (columnType) {
             case INT32: {
                 final int initial = Utils.getIntElementValue("initial", jo);
@@ -366,6 +413,42 @@ public class RandomGenerator extends DataGenerator {
         }
     }
 
+    static RandomGenerator randomPickFromJson(final String fieldName,
+                                              final JSONObject jo,
+                                              final ColumnType columnType,
+                                              final long seed,
+                                              final double percentNull
+    ) {
+        switch (columnType) {
+            case INT32: {
+                final ArrayList<Integer> options = Utils.getIntListElementValues("options", jo);
+                final ArrayList<Integer> weights = Utils.getIntListElementValuesOrNull("weights", jo);
+                return RandomGenerator.ofRandomPick(columnType, options, weights, seed, percentNull);
+            }
+            case INT64: {
+                final ArrayList<Long> options = Utils.getLongListElementValues("options", jo);
+                final ArrayList<Integer> weights = Utils.getIntListElementValuesOrNull("weights", jo);
+                return RandomGenerator.ofRandomPick(columnType, options, weights, seed, percentNull);
+            }
+            case DOUBLE: {
+                final ArrayList<Double> options = Utils.getDoubleListElementValues("options", jo);
+                final ArrayList<Integer> weights = Utils.getIntListElementValuesOrNull("weights", jo);
+                return RandomGenerator.ofRandomPick(columnType, options, weights, seed, percentNull);
+            }
+            case STRING: {
+                final ArrayList<String> options = Utils.getStringListElementValues("options", jo);
+                final ArrayList<Integer> weights = Utils.getIntListElementValuesOrNull("weights", jo);
+                return RandomGenerator.ofRandomPick(columnType, options, weights, seed, percentNull);
+            }
+            case TIMESTAMP_NANOS:
+                throw new IllegalArgumentException(String.format(
+                        "%s: output type %s is not supported for poisson-wait distribution",
+                        fieldName, columnType));
+            default:
+                throw new IllegalStateException("Missing column type");
+        }
+    }
+
 
     static RandomGenerator fromJson(final String fieldName, final JSONObject jo) {
 
@@ -377,23 +460,21 @@ public class RandomGenerator extends DataGenerator {
 
         switch (distribution) {
             case "exponential":
-                return exponentialFromJson(fieldName, jo, columnType, percentNull, seed);
+                return exponentialFromJson(fieldName, jo, columnType, seed, percentNull);
             case "uniform":
-                return uniformFromJson(fieldName, jo, columnType, percentNull, seed);
+                return uniformFromJson(fieldName, jo, columnType, seed, percentNull);
             case "normal":
-                return normalFromJson(fieldName, jo, columnType, percentNull, seed);
+                return normalFromJson(fieldName, jo, columnType, seed, percentNull);
             case "poisson_wait":
-                return poissonWaitFromJson(fieldName, jo, columnType, percentNull, seed);
+                return poissonWaitFromJson(fieldName, jo, columnType, seed, percentNull);
             case "random_walk":
-                return randomWalkFromJson(fieldName, jo, columnType, percentNull, seed);
+                return randomWalkFromJson(fieldName, jo, columnType, seed, percentNull);
+            case "random_pick":
+                return randomPickFromJson(fieldName, jo, columnType, seed, percentNull);
             default:
                 throw new IllegalArgumentException(String.format(
                         "Unrecognized value \"%s\" for \"distribution\" element", distribution));
         }
-    }
-
-    private Object getNext() {
-        return it.next();
     }
 
     private class GeneratorObjectIterator implements Iterator<Object> {
@@ -406,7 +487,7 @@ public class RandomGenerator extends DataGenerator {
         public Object next() {
 
             // consume from the iterator ...
-            Object o = getNext();
+            Object o = it.next();
 
             // even if we end up rolling a null
             if (pctNullMgr.test()) {

@@ -8,38 +8,58 @@ import java.util.Iterator;
 public class ExplicitListGenerator extends DataGenerator {
 
     final PercentNullManager pctNullMgr;
-    final ArrayList<Object> values;
+    final ArrayList<?> values;
+    final int count;
     final GeneratorObjectIterator objectIterator;
     int currentIndex;
 
-    private ExplicitListGenerator(final ColumnType columnType, final ArrayList<Object> values, final long seed, final double pctNullMgr) {
+    private ExplicitListGenerator(
+            final ColumnType columnType,
+            final ArrayList<?> values,
+            final int count,
+            final long seed,
+            final double pctNullMgr
+    ) {
         this.columnType = columnType;
         this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
         this.values = values;
+        this.count = count;
 
         currentIndex = 0;
         objectIterator = new GeneratorObjectIterator();
     }
 
     static DataGenerator fromJsonFileGenerator(String fieldName, JSONObject jo) {
-
         final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         final String filename = Utils.getStringElementValue("source_file", jo);
-        final ArrayList<Object> values = Utils.readFile(filename, columnType);
+        final ArrayList<?> values = Utils.readFile(filename, columnType);
+        final int count = Utils.getIntElementValueOrDefault("count", jo, -1);
 
         final long seed = Utils.getLongElementValue("seed", jo);
 
         final double percent_null = PercentNullManager.parseJson(fieldName, jo);
-        final ExplicitListGenerator sg = new ExplicitListGenerator(columnType, values, seed, percent_null);
+        final ExplicitListGenerator sg = new ExplicitListGenerator(
+                columnType, values, (count != -1) ? count : values.size(), seed, percent_null);
+        return sg;
+    }
+
+    static DataGenerator fromJsonListGenerator(String fieldName, JSONObject jo) {
+        final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
+        final ArrayList<?> values = Utils.getColumnTypeElementValues(columnType,"values", jo);
+        final int count = Utils.getIntElementValueOrDefault("count", jo, -1);
+        final long seed = Utils.getLongElementValue("seed", jo);
+        final double percent_null = PercentNullManager.parseJson(fieldName, jo);
+        final ExplicitListGenerator sg = new ExplicitListGenerator(
+                columnType, values, (count != -1) ? count : values.size(), seed, percent_null);
         return sg;
     }
 
     private boolean generatorHasNext() {
-        return currentIndex < values.size();
+        return currentIndex < count;
     }
 
     private Object generatorGetNext() {
-        return values.get(currentIndex++);
+        return values.get(currentIndex++ % values.size());
     }
 
     class GeneratorObjectIterator  implements Iterator<Object> {

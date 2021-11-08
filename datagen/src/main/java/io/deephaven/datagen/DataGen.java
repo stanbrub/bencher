@@ -112,20 +112,27 @@ public class DataGen {
         final Set<Map.Entry<String, DataGenerator>> entrySet = generators.entrySet();
         final Object[] data = new Object[entrySet.size()];
         boolean more = true;
-        while (more) {
-            int i = 0;
-            for (Map.Entry<String, DataGenerator> entry : entrySet) {
-                DataGenerator gen = entry.getValue();
-                final Iterator<Object> iter = gen.getIterator();
-                if (!iter.hasNext()) {
-                    more = false;
-                    break;
+        int row = 0;
+        try {
+            while (more) {
+                ++row;
+                int i = 0;
+                for (Map.Entry<String, DataGenerator> entry : entrySet) {
+                    DataGenerator gen = entry.getValue();
+                    final Iterator<Object> iter = gen.getIterator();
+                    if (!iter.hasNext()) {
+                        more = false;
+                        break;
+                    }
+                    data[i++] = iter.next();
                 }
-                data[i++] = iter.next();
+                if (more) {
+                    pqw2.write(data);
+                }
             }
-            if (more) {
-                pqw2.write(data);
-            }
+        } catch (Exception ex) {
+            new File(outputFileName).delete();
+            throw new RuntimeException(String.format("Failure while generating at row %d", row), ex);
         }
 
         customWriterSupport.flush();
@@ -244,10 +251,6 @@ public class DataGen {
             // get the column name and the JSON object
             String fieldName = entry.getKey();
             JSONObject jsonField = (JSONObject) entry.getValue();
-
-            // build a JSON object
-            String generation_type = (String) jsonField.get("generation_type");
-            // System.err.printf("%s: %s\n", fieldName, generation_type);
 
             // create that object and dump it into the map
             DataGenerator gen = DataGenerator.fromJson(fieldName, jsonField);

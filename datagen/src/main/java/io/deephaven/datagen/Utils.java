@@ -1,12 +1,14 @@
 package io.deephaven.datagen;
 
 import org.json.simple.JSONObject;
+import org.mortbay.util.ajax.JSON;
 
 import java.io.*;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoField;
 import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
+import java.util.function.Function;
 
 public class Utils {
     public static File locateFile(final File dir, final String generatorFilename) {
@@ -41,9 +43,29 @@ public class Utils {
     }
 
     public static int getIntElementValue(final String key, final JSONObject jo) {
-        final String value = getStringElementValue(key, jo);
+        return getIntElementValueMaybeDefault(key, jo, false, 0);
+    }
+
+    public static int getIntElementValueOrDefault(final String key, final JSONObject jo, final int defaultValue) {
+        return getIntElementValueMaybeDefault(key, jo, true, defaultValue);
+    }
+
+    private static int getIntElementValueMaybeDefault(
+            final String key, final JSONObject jo, final boolean haveDefault, final int defaultValue) {
+        final Object jsonValue = jo.get(key);
+        if (jsonValue == null) {
+            if (haveDefault) {
+                return defaultValue;
+            } else {
+                throw new IllegalArgumentException(String.format("Missing \"%s\" element", key));
+            }
+        }
+        if (!(jsonValue instanceof String)) {
+            throw new IllegalArgumentException(String.format("Wrong type for \"%s\" element, should be string", key));
+        }
+        final String value = (String) jsonValue;
         try {
-            return Integer.parseInt(value);
+            return Integer.parseInt((String) value);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException(
                     String.format("Couldn't parse value \"%s\" for element \"%s\" as an int.", value, key),
@@ -100,6 +122,97 @@ public class Utils {
         }
 
         return values;
+    }
+
+    public static ArrayList<String> getStringListElementValues(final String key, final JSONObject jo) {
+        return getStringListElementValues(key, jo, false);
+    }
+
+    public static ArrayList<String> getStringListElementValuesOrNull(final String key, final JSONObject jo) {
+        return getStringListElementValues(key, jo, true);
+    }
+
+    private static ArrayList<String> getStringListElementValues(final String key, final JSONObject jo, final boolean allowNull) {
+        final Object valuesObj =  jo.get(key);
+        if (valuesObj == null) {
+            if (allowNull) {
+                return null;
+            }
+            throw new IllegalArgumentException(String.format("Element \"%s\" should exist.", key));
+        }
+        if (!(valuesObj instanceof ArrayList)) {
+            throw new IllegalArgumentException(String.format("Element \"%s\" should be a list.", key));
+        }
+
+        final ArrayList<?> list = (ArrayList<?>) valuesObj;
+        for (int i = 0; i < list.size(); ++i) {
+            final Object o = list.get(i);
+            if (!(o instanceof String)) {
+                throw new IllegalArgumentException(String.format("Element in position %d (=\"%s\") is not a string.", i+1, o.toString()));
+            }
+        }
+        return (ArrayList<String>) list;
+    }
+
+    public static ArrayList<Integer> getIntListElementValues(final String key, final JSONObject jo) {
+        return getListElementValues(Integer::parseInt, key, jo, false);
+    }
+
+    public static ArrayList<Integer> getIntListElementValuesOrNull(final String key, final JSONObject jo) {
+        return getListElementValues(Integer::parseInt, key, jo, true);
+    }
+
+    public static ArrayList<Long> getLongListElementValues(final String key, final JSONObject jo) {
+        return getListElementValues(Long::parseLong, key, jo, false);
+    }
+
+    public static ArrayList<Long> getLongListElementValuesOrNull(final String key, final JSONObject jo) {
+        return getListElementValues(Long::parseLong, key, jo, true);
+    }
+
+    public static ArrayList<Double> getDoubleListElementValues(final String key, final JSONObject jo) {
+        return getListElementValues(Double::parseDouble, key, jo, false);
+    }
+
+    public static ArrayList<Double> getDoubleListElementValuesOrNull(final String key, final JSONObject jo) {
+        return getListElementValues(Double::parseDouble, key, jo, true);
+    }
+
+    private static <T> ArrayList<T> getListElementValues(Function<String, T> fromString, final String key, final JSONObject jo, final boolean allowNull) {
+        final ArrayList<String> list = getStringListElementValues(key, jo, allowNull);
+        if (list == null) {
+            return null;
+        }
+        final ArrayList<T> out = new ArrayList<>(list.size());
+        for (int i = 0; i < list.size(); ++i) {
+            final String s = list.get(i);
+            final T v;
+            try {
+                v = fromString.apply(s);
+            } catch (NumberFormatException ex) {
+                throw new IllegalArgumentException(
+                        String.format("Element in position %d (=\"%s\" cannot be converted to int", i+1, s), ex);
+            }
+            out.add(v);
+        }
+        return out;
+    }
+
+    public static ArrayList<?> getColumnTypeElementValues(final DataGenerator.ColumnType columnType, final String key, final JSONObject jo) {
+        switch (columnType) {
+            case INT32:
+                return getIntListElementValues(key, jo);
+            case INT64:
+                return getLongListElementValues(key, jo);
+            case DOUBLE:
+                return getDoubleListElementValues(key, jo);
+            case STRING:
+                return getStringListElementValues(key, jo);
+            case TIMESTAMP_NANOS:
+                throw new IllegalArgumentException("Unsupported type " + columnType);
+            default:
+                throw new IllegalStateException("Missing types");
+        }
     }
 
     public static Object stringValueAsType(

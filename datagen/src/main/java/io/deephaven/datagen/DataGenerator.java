@@ -74,6 +74,9 @@ public abstract class DataGenerator {
             case "file":
                 return ExplicitListGenerator.fromJsonFileGenerator(fieldName, jo);
 
+            case "list":
+                return ExplicitListGenerator.fromJsonListGenerator(fieldName, jo);
+
             case "id":
                 return IDGenerator.fromJson(fieldName, jo);
 

@@ -1,0 +1,47 @@
+{
+  "benchmarks": [
+    {
+      "title": "As Of Join 1m work queue elements against 10k audit elements",
+      "generator_files": [ "workqueue-no-nulls-1m.json", "auditqueue-no-nulls-10k.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "tag = '1m'",
+                      "bench_name = 'select-aj-bench-' + tag",
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "text" : [
+                      "from deephaven.ParquetTools import readTable", 
+                      "workqueue = readTable('/data/workqueue-no-nulls-1m.parquet').select()",
+                      "auditqueue = readTable('/data/auditqueue-no-nulls-10k.parquet').select()",
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "perform aj",
+                  "text" : [
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = workqueue.aj(auditqueue, 'user_id, timestamp', 'audit_timestamp = timestamp')",
+                      "time_end_ns = time.perf_counter_ns()",
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

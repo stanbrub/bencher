@@ -86,22 +86,19 @@ public class DataGen {
      * the generators and then closes the file.
      *
      * @param outputFileName  Filename to write output to.
-     * @param generators    Map of generators, one for each column we expect to write.
+     * @param generators      Array of generators, one for each column we expect to write.
      * @throws IOException
      */
     private static void generateParquet(
             final String outputFileName,
-            final Map<String, DataGenerator> generators) throws IOException {
+            final String[] columns,
+            final DataGenerator[] generators) throws IOException {
 
         // build typed Parquet structure
         // need a MessageTypeBuilder so we can create the protobuf type that Parquet uses
         Types.MessageTypeBuilder builder = org.apache.parquet.schema.Types.buildMessage();
-        for (Map.Entry<String, DataGenerator> entry : generators.entrySet()) {
-
-            final DataGenerator dg = entry.getValue();
-            final String fieldName = entry.getKey();
-
-            builder.addField(DataGenerator.parquetTypeFromJSONType(dg.getColumnType(), entry.getKey()));
+        for (int i = 0; i < columns.length; ++i) {
+            builder.addField(DataGenerator.parquetTypeFromJSONType(generators[i].getColumnType(), columns[i]));
         }
 
         MessageType mt = builder.named("MyMessage");
@@ -109,22 +106,20 @@ public class DataGen {
         final CustomWriterSupport customWriterSupport = new CustomWriterSupport(mt);
         CustomParquetWriter pqw2 = getParquetWriter(outputFileName, customWriterSupport);
 
-        final Set<Map.Entry<String, DataGenerator>> entrySet = generators.entrySet();
-        final Object[] data = new Object[entrySet.size()];
+        final Object[] data = new Object[columns.length];
         boolean more = true;
         int row = 0;
         try {
             while (more) {
                 ++row;
-                int i = 0;
-                for (Map.Entry<String, DataGenerator> entry : entrySet) {
-                    DataGenerator gen = entry.getValue();
-                    final Iterator<Object> iter = gen.getIterator();
+                for (int i = 0; i < columns.length; ++i) {
+                    final DataGenerator dg = generators[i];
+                    final Iterator<Object> iter = dg.getIterator();
                     if (!iter.hasNext()) {
                         more = false;
                         break;
                     }
-                    data[i++] = iter.next();
+                    data[i] = iter.next();
                 }
                 if (more) {
                     pqw2.write(data);
@@ -143,32 +138,27 @@ public class DataGen {
      * Generates a CSV file from the list of generators. This function will exhaust the
      * generators. Also writes a header at the first row, using the column names.
      *
-     * @param generators    Map of generators, one for each column we expect to write.
+     * @param generators    Array of generators, one for each column we expect to write.
      */
-    private static void generateCSV(Map<String, DataGenerator> generators, FileWriter outputFile) throws IOException {
+    private static void generateCSV(
+            final FileWriter outputFile, final String[] columns, final DataGenerator[] generators
+    ) throws IOException {
 
         StringBuilder headerBuilder = new StringBuilder();
-        boolean first = true;
-
-        for (Map.Entry<String, DataGenerator> entry : generators.entrySet()) {
-
-            if (!first) {
+        for (int i = 0; i < columns.length; ++i) {
+            if (i != 0) {
                 headerBuilder.append(',');
-            } else {
-                first = false;
             }
 
-            headerBuilder.append(entry.getKey());
+            headerBuilder.append(columns[i]);
         }
         outputFile.write(headerBuilder.toString());
         outputFile.append('\n');
 
         for (boolean more = true; more; /* inside */ ) {
             final StringBuilder rowBuilder = new StringBuilder();
-            first = true;
-            for (Map.Entry<String, DataGenerator> entry : generators.entrySet()) {
-                final String fieldName = entry.getKey();
-                final DataGenerator gen = entry.getValue();
+            for (int i = 0; i < columns.length; ++i) {
+                final DataGenerator gen = generators[i];
 
                 if (!gen.getIterator().hasNext()) {
                     more = false;
@@ -176,10 +166,8 @@ public class DataGen {
                 }
 
                 final Object val = gen.getIterator().next();
-                if (!first) {
+                if (i != 0) {
                     rowBuilder.append(',');
-                } else {
-                    first = false;
                 }
 
                 if (val != null)
@@ -240,25 +228,45 @@ public class DataGen {
         }
         System.out.println("Generating " + outputFilename + ".");
 
-        final Map<String, Object> columnDictionary = (Map<String, Object>) documentDictionary.get("columns");
+        final Object columnsObject = documentDictionary.get("columns");
+        final Map<String, Object> columnDictionary;
+        final String[] columns;
+        if (columnsObject instanceof Map) {
+            columnDictionary = (Map<String, Object>) columnsObject;
+            columns = columnDictionary.keySet().toArray(new String[columnDictionary.size()]);
+        } else if (columnsObject instanceof List) {
+            final List<Object> columnList = (List) columnsObject;
+            columnDictionary = new HashMap<>();
+            columns = new String[columnList.size()];
+            int i = 0;
+            for (Object element : columnList) {
+                final JSONObject jo = (JSONObject) element;
+                final String column = Utils.getStringElementValue("name", jo);
+                columns[i++] = column;
+                columnDictionary.put(column, jo);
+            }
+        } else {
+            throw new IllegalArgumentException(
+                    "element \"columns\" has the wrong type: " + columnsObject.getClass().getSimpleName());
+        }
 
         // map from string (name of column) to our io.deephaven.datagen.DataGenerator-derived objects
-        final Map<String, DataGenerator> generators = new TreeMap<>();
+        final DataGenerator[] generators = new DataGenerator[columns.length];
 
         // for each entry in the JSON document ...
-        for (Map.Entry<String, Object> entry : columnDictionary.entrySet()) {
+        int i = 0;
+        for (final String column : columns) {
 
             // get the column name and the JSON object
-            String fieldName = entry.getKey();
-            JSONObject jsonField = (JSONObject) entry.getValue();
+            final JSONObject jsonField = (JSONObject) columnDictionary.get(column);
 
             // create that object and dump it into the map
-            DataGenerator gen = DataGenerator.fromJson(fieldName, jsonField);
-            generators.put(fieldName, gen);
+            final DataGenerator gen = DataGenerator.fromJson(column, jsonField);
+            generators[i++] = gen;
         }
 
         if (format == OutputFormat.PARQUET) {
-            generateParquet(outputFilename, generators);
+            generateParquet(outputFilename, columns, generators);
         } else if (format == OutputFormat.CSV) {
 
             final FileWriter outputFile;
@@ -270,7 +278,7 @@ public class DataGen {
                 throw new InternalError(err);
             }
 
-            generateCSV(generators, outputFile);
+            generateCSV(outputFile, columns, generators);
             outputFile.close();
         } else {
             throw new InternalError(String.format("Not ready to handle format %s", format));

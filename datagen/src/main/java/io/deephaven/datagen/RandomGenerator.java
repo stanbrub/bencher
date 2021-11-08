@@ -251,7 +251,7 @@ public class RandomGenerator extends DataGenerator {
             final int[] accumWeights = accumWeights(weights, options.size());
             @Override
             public T next() {
-                final int weightedPick = prng.nextInt(accumWeights[accumWeights.length - 1]);
+                final int weightedPick = prng.nextInt(accumWeights[accumWeights.length - 1] + 1);
                 int pos = Arrays.binarySearch(accumWeights, weightedPick);
                 if (pos < 0) {
                     pos = ~pos;

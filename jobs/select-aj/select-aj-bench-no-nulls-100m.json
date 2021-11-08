@@ -19,8 +19,8 @@
                   "title" : "load tables",
                   "text" : [
                       "from deephaven.ParquetTools import readTable", 
-                      "workqueue = readTable('/data/workqueue-no-nulls-1m.parquet').select()",
-                      "auditqueue = readTable('/data/auditqueue-no-nulls-10k.parquet').select()",
+                      "workqueue = readTable('/data/workqueue-no-nulls-100m.parquet').select()",
+                      "auditqueue = readTable('/data/auditqueue-no-nulls-1m.parquet').select()",
                   ],
                   "timed" : 1
               },

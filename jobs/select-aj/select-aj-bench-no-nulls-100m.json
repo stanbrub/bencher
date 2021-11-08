@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "As Of Join 100m work queue elements against 1m audit elements",
+      "title": "As Of Join 100m work queue elements against 1m audit elements, both tables select()ed in memory first",
       "generator_files": [ "workqueue-no-nulls-100m.json", "auditqueue-no-nulls-1m.json" ],
       "benchmark": {
           "statements" : [

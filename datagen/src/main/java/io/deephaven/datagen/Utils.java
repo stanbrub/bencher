@@ -32,14 +32,28 @@ public class Utils {
         return file;
     }
 
-    public static String getStringElementValue(final String key, final JSONObject jo) {
+    private static String getStringElementValueMaybeDefault(
+        final String key, final JSONObject jo, final boolean haveDefault, final String defaultValue) {
         final Object jsonValue = jo.get(key);
         if (jsonValue == null) {
-            throw new IllegalArgumentException(String.format("Missing \"%s\" element", key));
-        } else if (!(jsonValue instanceof String)) {
+            if (haveDefault) {
+                return defaultValue;
+            } else {
+                throw new IllegalArgumentException(String.format("Missing \"%s\" element", key));
+            }
+        }
+        if (!(jsonValue instanceof String)) {
             throw new IllegalArgumentException(String.format("Wrong type for \"%s\" element, should be string", key));
         }
         return (String) jsonValue;
+    }
+
+    public static String getStringElementValue(final String key, final JSONObject jo) {
+        return getStringElementValueMaybeDefault(key, jo, false, null);
+    }
+
+    public static String getStringElementValueOrDefault(final String key, final JSONObject jo, final String defaultValue) {
+        return getStringElementValueMaybeDefault(key, jo, true, defaultValue);
     }
 
     public static int getIntElementValue(final String key, final JSONObject jo) {
@@ -65,7 +79,7 @@ public class Utils {
         }
         final String value = (String) jsonValue;
         try {
-            return Integer.parseInt((String) value);
+            return Integer.parseInt(value);
         } catch (NumberFormatException ex) {
             throw new IllegalArgumentException(
                     String.format("Couldn't parse value \"%s\" for element \"%s\" as an int.", value, key),

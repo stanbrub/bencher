@@ -456,7 +456,7 @@ public class RandomGenerator extends DataGenerator {
         final double percentNull = PercentNullManager.parseJson(fieldName, jo);
 
         final long seed = Utils.getLongElementValue("seed", jo);
-        final String distribution = Utils.getStringElementValue("distribution", jo);
+        final String distribution = Utils.getStringElementValueOrDefault("distribution", jo, "uniform");
 
         switch (distribution) {
             case "exponential":

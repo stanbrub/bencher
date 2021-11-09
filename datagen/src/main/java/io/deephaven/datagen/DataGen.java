@@ -18,12 +18,14 @@ import org.apache.parquet.schema.Types;
 
 public class DataGen {
 
+    private static final boolean OVERWRITE = Boolean.parseBoolean(System.getProperty("data.overwrite", "true"));
+    private static final String OUTPUT_PREFIX_PATH = System.getProperty("output.prefix.path", ".");
+    private static final boolean FORCE_GENERATION = Boolean.parseBoolean(System.getProperty("force.generation", "False"));
+
     private enum OutputFormat {
         PARQUET,
         CSV,
     }
-
-    private static final boolean OVERWRITE = Boolean.parseBoolean(System.getProperty("data.overwrite", "true"));
 
     /***
      * Construct an io.deephaven.datagen.CustomParquetWriter given the MessageType schema that we're passed.
@@ -77,8 +79,7 @@ public class DataGen {
             default:
                 throw new IllegalStateException("unrecognized format " + format);
         }
-        final String prefix = System.getProperty("output.prefix.path", ".");
-        return prefix + File.separator + basename + "." + extension;
+        return OUTPUT_PREFIX_PATH + File.separator + basename + "." + extension;
     }
 
     /***
@@ -217,8 +218,7 @@ public class DataGen {
         final OutputFormat format = getOutputFormat(documentDictionary);
         final String outputFilename = getOutputFilename(generatorFilename, format);
 
-        final boolean forceGeneration = Boolean.parseBoolean(System.getProperty("force.generation", "False"));
-        if (!forceGeneration) {
+        if (!FORCE_GENERATION) {
             final File outputFile = new File(outputFilename);
             if (outputFile.exists() && outputFile.lastModified() > generatorFile.lastModified()) {
                 System.out.println("Not generating " + outputFile.getAbsolutePath() +

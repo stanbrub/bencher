@@ -49,3 +49,8 @@ with open(results_file, 'a') as file:
     if need_header:
         writer.writerow(header)
     writer.writerow(fields)
+
+try:
+    bench_cleanup()
+except Exception:
+    pass

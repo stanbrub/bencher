@@ -23,15 +23,19 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalUnit;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 public class BencherApp {
+
+    private static final boolean TERSE = Boolean.parseBoolean(System.getProperty("terse", "False"));;
+    private static final boolean SKIP_CLEANUP = Boolean.parseBoolean(System.getProperty("skip.cleanup", "False"));
+    private static final Duration SESSION_TIMEOUT =
+            Duration.ofMillis(Long.parseLong(System.getProperty("session.timeout.millis", "30000")));
+    private static final String DH_ENDPOINT = System.getProperty("dh.endpoint", "localhost:10000");
+    private static final String JOBS_PREFIX_PATH = System.getProperty("jobs.prefix.path", "jobs");
+    private static final boolean GENERATE_ONLY = Boolean.parseBoolean(System.getProperty("generate.only", "False"));
 
     public static String toPrettyString(Changes changes) {
         final StringBuilder sb = new StringBuilder();
@@ -58,15 +62,34 @@ public class BencherApp {
         return sb.toString();
     }
 
-    private static final Duration sessionTimeout = Duration.ofMillis(Long.parseLong(System.getProperty("session.timeout.millis", "30000")));
+    public static final class LiveVariablesTracker extends HashSet<String> {
+        public void update(final Changes changes) {
+            for (final VariableDefinition variableDefinition : changes.created()) {
+                super.add(variableDefinition.title());
+            }
+            for (final VariableDefinition variableDefinition : changes.removed()) {
+                super.remove(variableDefinition.title());
+            }
+        }
+
+        public String generateCleanupPythonStatement() {
+            final StringBuilder builder = new StringBuilder();
+            boolean first = true;
+            for (final String varName : this) {
+                if (!first) {
+                    builder.append("; ");
+                }
+                builder.append(varName).append("=None");
+                first = false;
+            }
+            return builder.toString();
+        }
+    }
 
     static Session getSession() {
-
-        String target = System.getProperty("dh.endpoint", "localhost:10000");
-
         ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
 
-        ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(target);
+        ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
         channelBuilder.usePlaintext();
         // channelBuilder.useTransportSecurity();
         channelBuilder.userAgent("DHMark");
@@ -78,7 +101,7 @@ public class BencherApp {
         //TODO: set execution timeout
         SessionImplConfig cfg = SessionImplConfig.builder()
                 .executor(scheduler)
-                .closeTimeout(sessionTimeout)
+                .closeTimeout(SESSION_TIMEOUT)
                 .channel(new DeephavenChannel(managedChannel))
                 .build();
 
@@ -126,6 +149,7 @@ public class BencherApp {
         final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
 
         // get our console and a session within it
+        final LiveVariablesTracker varTracker = new LiveVariablesTracker();
         try (final Session session = getSession()) {
             try (final ConsoleSession console = getConsole(session)) {
 
@@ -177,13 +201,16 @@ public class BencherApp {
                     Stopwatch sw = isTimed ? Stopwatch.createStarted() : null;
 
                     // actually execute
-                    Changes changes = null;
+                    final Changes changes;
                     try {
                         changes = console.executeCode(statement);
                     } catch (TimeoutException ex) {
                         System.err.printf("Execution of \"%s\" timed out: %s\n", title, ex.getMessage());
                         System.exit(1);
+                        // keep the compiler happy.
+                        throw new IllegalStateException();
                     }
+                    varTracker.update(changes);
 
                     final Optional<String> errorMessageOptional = changes.errorMessage();
                     errorMessageOptional.ifPresent(s -> {
@@ -194,8 +221,30 @@ public class BencherApp {
                     // optionally time ...
                     if (sw != null) {
                         sw.stop();
-                        System.out.printf("\"%s\": Execution took %d milliseconds\n", title, sw.elapsed(TimeUnit.MILLISECONDS));
-                        System.out.flush();
+                        System.out.printf("\"%s\": Execution as seen from client side took %d milliseconds\n",
+                                title,
+                                sw.elapsed(TimeUnit.MILLISECONDS));
+                    }
+
+                    if (!TERSE) {
+                        System.out.printf("\"%s\": Executed, chages: %s", title, toPrettyString(changes));
+                    }
+                    System.out.flush();
+                }
+                if (!SKIP_CLEANUP) {
+                    final Changes changes;
+                    try {
+                        changes = console.executeCode(varTracker.generateCleanupPythonStatement());
+                    } catch (TimeoutException ex) {
+                        System.err.printf("Execution of final clean up variables phase timed out: %s\n", ex.getMessage());
+                        System.exit(1);
+                        // keep the compiler happy.
+                        throw new IllegalStateException();
+                    }
+                    varTracker.update(changes);
+                    if (!varTracker.isEmpty()) {
+                        System.err.printf("Cleanup failed to remove all variables: %s\n", varTracker);
+                        System.exit(1);
                     }
                 }
             } catch (ExecutionException e) {
@@ -216,8 +265,6 @@ public class BencherApp {
 
         return benchmarks;
     }
-
-    private static final String JOBS_PREFIX_PATH = System.getProperty("jobs.prefix.path", "jobs");
 
     private static String maybeMakeRelativePath(final String fn) {
         if (!fn.startsWith(File.separator) && JOBS_PREFIX_PATH != null) {
@@ -303,7 +350,7 @@ public class BencherApp {
                 }
             }
 
-            if (Boolean.parseBoolean(System.getProperty("generate.only", "False"))) {
+            if (GENERATE_ONLY) {
                 System.out.printf("Generate only requested, not running benchmark \"%s\".\n", title);
                 continue;
             }

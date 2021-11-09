@@ -1,0 +1,6 @@
+jobs/select-by/select-by-bench-no-nulls-30m.json
+jobs/select-update/select-update-bench-no-nulls-100m.json
+jobs/select-aj/select-aj-bench-no-nulls-100m-1m.json
+jobs/select-join/select-join-bench-no-nulls-30m.json
+jobs/select-where/select-where-bench-no-nulls-100m.json
+jobs/select-view/select-view-bench-no-nulls-100m.json

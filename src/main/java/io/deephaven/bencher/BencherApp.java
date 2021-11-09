@@ -387,7 +387,5 @@ public class BencherApp {
 
             System.out.printf("benchmark \"%s\" completed\n\n", title);
         }
-
-        System.exit(0);
     }
 }

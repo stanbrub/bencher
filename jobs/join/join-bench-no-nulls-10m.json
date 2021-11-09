@@ -22,6 +22,12 @@
               },
 
               {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
                   "title" : "perform join",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",

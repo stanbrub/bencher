@@ -23,6 +23,12 @@
               },
 
               {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
                   "title" : "create view",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",

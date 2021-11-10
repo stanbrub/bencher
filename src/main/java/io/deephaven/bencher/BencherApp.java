@@ -86,19 +86,7 @@ public class BencherApp {
         }
     }
 
-    static Session getSession() {
-        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-
-        ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
-        channelBuilder.usePlaintext();
-        // channelBuilder.useTransportSecurity();
-        channelBuilder.userAgent("DHMark");
-        ManagedChannel managedChannel = channelBuilder.build();
-
-        Runtime.getRuntime()
-                .addShutdownHook(new Thread(() -> onShutdown(scheduler, managedChannel)));
-
-        //TODO: set execution timeout
+    static Session getSession(final ScheduledExecutorService scheduler, final ManagedChannel managedChannel) {
         SessionImplConfig cfg = SessionImplConfig.builder()
                 .executor(scheduler)
                 .closeTimeout(SESSION_TIMEOUT)
@@ -108,15 +96,15 @@ public class BencherApp {
         return cfg.createSession();
     }
 
-    static ConsoleSession getConsole(Session session) throws ExecutionException, InterruptedException {
-
-        return session.console("python").get();
-    }
-
-    private static void onShutdown(ScheduledExecutorService scheduler,
-                                   ManagedChannel managedChannel) {
-        scheduler.shutdownNow();
-        managedChannel.shutdownNow();
+    private static void shutdown(
+            final ScheduledExecutorService scheduler,
+            final ManagedChannel managedChannel) {
+        if (!scheduler.isShutdown()) {
+            scheduler.shutdownNow();
+        }
+        if (!managedChannel.isShutdown()) {
+            managedChannel.shutdownNow();
+        }
         try {
             if (!scheduler.awaitTermination(10, TimeUnit.SECONDS)) {
                 throw new RuntimeException("Scheduler not shutdown after 10 seconds");
@@ -126,8 +114,9 @@ public class BencherApp {
             return;
         }
         try {
-            if (!managedChannel.awaitTermination(10, TimeUnit.SECONDS)) {
-                throw new RuntimeException("Channel not shutdown after 10 seconds");
+            final long waitSeconds = 10;
+            if (!managedChannel.awaitTermination(waitSeconds, TimeUnit.SECONDS)) {
+                throw new RuntimeException("Channel not shutdown after " + waitSeconds + " seconds");
             }
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
@@ -144,115 +133,104 @@ public class BencherApp {
         return jsonMap;
     }
 
-    static void runBenchmark(final File baseDir, final JSONObject jsonMap) {
+    static void runBenchmark(final ConsoleSession console, final File baseDir, final JSONObject jsonMap) {
         final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
 
         // get our console and a session within it
         final LiveVariablesTracker varTracker = new LiveVariablesTracker();
-        try (final Session session = getSession()) {
-            try (final ConsoleSession console = getConsole(session)) {
+        // for each statement ...
+        int statementNo = 0;
+        for (final Object statementObject : statements) {
+            ++statementNo;
+            final Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
 
-                // for each statement ...
-                int statementNo = 0;
-                for (final Object statementObject : statements) {
-                    ++statementNo;
-                    final Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
-
-                    final String title = (String) statementDefinitionDictionary.get("title");
-                    if (title == null) {
-                        throw new IllegalArgumentException(
-                                "statement number " + statementNo + " should include a \"title\" element.");
-                    }
-                    final Object text = statementDefinitionDictionary.get("text");
-                    final String statement;
-                    if (text == null) {
-                        final String statementFilename = (String) statementDefinitionDictionary.get("file");
-                        if (statementFilename == null) {
-                            throw new IllegalArgumentException(
-                                    "statement number " + statementNo + " should include either \"text\" or \"file\" element.");
-                        }
-                        final File statementFile = Utils.locateFile(baseDir, statementFilename);
-                        try {
-                            statement = Files.lines(statementFile.toPath()).collect(Collectors.joining("\n")) + "\n";
-                        } catch (Exception e) {
-                            throw new RuntimeException(
-                                    "Error while trying to read statement file \"" +
-                                            statementFile.getAbsolutePath() +
-                                            "\" for statement number " + statementNo, e);
-                        }
-                    } else {
-                        if (text instanceof String) {
-                            statement = (String) text;
-                        } else if (text instanceof ArrayList){
-                            final ArrayList<Object> lines = (ArrayList<Object>) text;
-                            final StringBuilder sb = new StringBuilder();
-                            for (Object line : lines) {
-                                sb.append(line.toString()).append('\n');
-                            }
-                            statement = sb.toString();
-                        } else {
-                            throw new IllegalArgumentException(
-                                    "element \"text\" has the wrong type, it should be either string or array of strings");
-                        }
-                    }
-                    boolean isTimed = ((Long) statementDefinitionDictionary.get("timed")) != 0;
-
-                    Stopwatch sw = isTimed ? Stopwatch.createStarted() : null;
-
-                    // actually execute
-                    final Changes changes;
-                    try {
-                        changes = console.executeCode(statement);
-                    } catch (TimeoutException ex) {
-                        System.err.printf("Execution of \"%s\" timed out: %s\n", title, ex.getMessage());
-                        System.exit(1);
-                        // keep the compiler happy.
-                        throw new IllegalStateException();
-                    }
-                    varTracker.update(changes);
-
-                    final Optional<String> errorMessageOptional = changes.errorMessage();
-                    errorMessageOptional.ifPresent(s -> {
-                        System.err.printf("Execution of \"%s\" failed with error:\n%s\n", title, s);
-                        System.exit(1);
-                    });
-
-                    // optionally time ...
-                    if (sw != null) {
-                        sw.stop();
-                        System.out.printf("\"%s\": Execution as seen from client side took %d milliseconds\n",
-                                title,
-                                sw.elapsed(TimeUnit.MILLISECONDS));
-                    }
-
-                    if (!TERSE) {
-                        System.out.printf("\"%s\": Executed, chages: %s", title, toPrettyString(changes));
-                    }
-                    System.out.flush();
+            final String title = (String) statementDefinitionDictionary.get("title");
+            if (title == null) {
+                throw new IllegalArgumentException(
+                        "statement number " + statementNo + " should include a \"title\" element.");
+            }
+            final Object text = statementDefinitionDictionary.get("text");
+            final String statement;
+            if (text == null) {
+                final String statementFilename = (String) statementDefinitionDictionary.get("file");
+                if (statementFilename == null) {
+                    throw new IllegalArgumentException(
+                            "statement number " + statementNo + " should include either \"text\" or \"file\" element.");
                 }
-                if (!SKIP_CLEANUP) {
-                    final Changes changes;
-                    try {
-                        changes = console.executeCode(varTracker.generateCleanupPythonStatement());
-                    } catch (TimeoutException ex) {
-                        System.err.printf("Execution of final clean up variables phase timed out: %s\n", ex.getMessage());
-                        System.exit(1);
-                        // keep the compiler happy.
-                        throw new IllegalStateException();
-                    }
-                    varTracker.update(changes);
-                    if (!varTracker.isEmpty()) {
-                        System.err.printf("Cleanup failed to remove all variables: %s\n", varTracker);
-                        System.exit(1);
-                    }
+                final File statementFile = Utils.locateFile(baseDir, statementFilename);
+                try {
+                    statement = Files.lines(statementFile.toPath()).collect(Collectors.joining("\n")) + "\n";
+                } catch (Exception e) {
+                    throw new RuntimeException(
+                            "Error while trying to read statement file \"" +
+                                    statementFile.getAbsolutePath() +
+                                    "\" for statement number " + statementNo, e);
                 }
-            } catch (ExecutionException e) {
-                System.err.printf("Error: execution exception while getting a console: %s\n", e.getMessage());
-                throw new RuntimeException(e.getMessage());
-            } catch (InterruptedException e) {
-                System.err.printf("Error: execution interrupted while getting a console: %s\n", e.getMessage());
-                throw new RuntimeException(e.getMessage());
+            } else {
+                if (text instanceof String) {
+                    statement = (String) text;
+                } else if (text instanceof ArrayList){
+                    final ArrayList<Object> lines = (ArrayList<Object>) text;
+                    final StringBuilder sb = new StringBuilder();
+                    for (Object line : lines) {
+                        sb.append(line.toString()).append('\n');
+                    }
+                    statement = sb.toString();
+                } else {
+                    throw new IllegalArgumentException(
+                            "element \"text\" has the wrong type, it should be either string or array of strings");
+                }
+            }
+            boolean isTimed = ((Long) statementDefinitionDictionary.get("timed")) != 0;
+
+            Stopwatch sw = isTimed ? Stopwatch.createStarted() : null;
+
+            // actually execute
+            final Changes changes;
+            try {
+                changes = console.executeCode(statement);
+            } catch (Exception ex) {
+                System.err.printf("Execution of \"%s\" failed: %s\n", title, ex.getMessage());
+                System.exit(1);
+                // keep the compiler happy.
+                throw new IllegalStateException();
+            }
+            varTracker.update(changes);
+
+            final Optional<String> errorMessageOptional = changes.errorMessage();
+            errorMessageOptional.ifPresent(s -> {
+                System.err.printf("Execution of \"%s\" failed with error:\n%s\n", title, s);
+                System.exit(1);
+            });
+
+            // optionally time ...
+            if (sw != null) {
+                sw.stop();
+                System.out.printf("\"%s\": Execution as seen from client side took %d milliseconds\n",
+                        title,
+                        sw.elapsed(TimeUnit.MILLISECONDS));
+            }
+
+            if (!TERSE) {
+                System.out.printf("\"%s\": Executed, chages: %s", title, toPrettyString(changes));
+            }
+            System.out.flush();
+        }
+        if (!SKIP_CLEANUP) {
+            final Changes changes;
+            try {
+                changes = console.executeCode(varTracker.generateCleanupPythonStatement());
+            } catch (Exception ex) {
+                System.err.printf("Execution of final clean up variables phase failed: %s\n", ex.getMessage());
+                System.exit(1);
+                // keep the compiler happy.
+                throw new IllegalStateException();
+            }
+            varTracker.update(changes);
+            if (!varTracker.isEmpty()) {
+                System.err.printf("Cleanup failed to remove all variables: %s\n", varTracker);
+                System.exit(1);
             }
         }
     }
@@ -284,9 +262,25 @@ public class BencherApp {
         for (int i = 0; i < args.length; ++i) {
             jobFiles[i] = validate(maybeMakeRelativePath(args[i]));
         }
-        for (final File jobFile : jobFiles) {
-            run(jobFile);
+        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
+        final ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
+        channelBuilder.usePlaintext();
+        // channelBuilder.useTransportSecurity();
+        channelBuilder.userAgent("DHMark");
+        final ManagedChannel managedChannel = channelBuilder.build();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(scheduler, managedChannel)));
+        final Session session = getSession(scheduler, managedChannel);
+        ConsoleSession console = null;
+        try {
+            console = session.console("python").get();
+        } catch (Exception ex) {
+            System.err.printf(me + ": Failed to create console session for DHC: %s, aborting\n", ex);
+            System.exit(1);
         }
+        for (final File jobFile : jobFiles) {
+            run(console, jobFile);
+        }
+        shutdown(scheduler, managedChannel);
     }
 
     private static File validate(final String jobFilename) {
@@ -302,7 +296,7 @@ public class BencherApp {
         return jobFile;
     }
 
-    private static void run(final File jobFile) {
+    private static void run(final ConsoleSession console, final File jobFile) {
         final File inputFileDir = jobFile.getParentFile();
 
         // open and read the definition file to an array of definition objects
@@ -367,7 +361,7 @@ public class BencherApp {
                         System.exit(1);
                     }
                 }
-                runBenchmark(inputFileDir, benchmarkObject);
+                runBenchmark(console, inputFileDir, benchmarkObject);
             } catch (IOException ex) {
                 if (benchFilename != null) {
                     System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex.getMessage());

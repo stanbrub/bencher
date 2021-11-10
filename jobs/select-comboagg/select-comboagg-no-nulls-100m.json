@@ -1,23 +1,24 @@
 {
   "benchmarks": [
     {
-      "title": "Join 30m animals and adjectives",
-      "generator_files": [ "animals.json", "adjectives.json", "relation-no-nulls-30m.json" ],
+      "title": "Do a complex ComboAgg on 100m rows previously in memory via select",
+      "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "tag = 'no-nulls-30m'",
-                      "bench_name = 'select-join-bench-' + tag",
+                      "import deephaven.ParquetTools as pt",
+                      "tag = 'no-nulls-100m'",
+                      "bench_name = 'select-comboagg-bench-' + tag",
                   ],
                   "timed" : 0
               },
 
               {
                   "title" : "load tables",
-                  "file" : "common-tables-select.py",
+                  "text" : "relation = pt.readTable('/data/relation-' + tag + '.parquet')",
                   "timed" : 1
               },
 
@@ -28,10 +29,10 @@
               },
 
               {
-                  "title" : "perform join",
+                  "title" : "perform ComboAgg",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.naturalJoin(adjectives, 'adjective_id').join(animals, 'animal_id').view('Values', 'adjective_name', 'animal_name')",
+                      "result = relation.countBy('count', 'animal_id')",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

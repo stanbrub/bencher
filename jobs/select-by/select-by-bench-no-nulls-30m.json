@@ -11,7 +11,7 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-30m'",
-                      "bench_name = 'by-bench-' + tag",
+                      "bench_name = 'select-by-bench-' + tag",
                   ],
                   "timed" : 0
               },

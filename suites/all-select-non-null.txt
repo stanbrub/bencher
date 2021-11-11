@@ -4,3 +4,4 @@ select-aj/select-aj-bench-no-nulls-100m-1m.json
 select-join/select-join-bench-no-nulls-100m.json
 select-where/select-where-bench-no-nulls-100m.json
 select-view/select-view-bench-no-nulls-100m.json
+select-comboagg/select-comboagg-bench-no-nulls-100m.json

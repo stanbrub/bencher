@@ -18,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
+                  "text" : "relation = pt.readTable('/data/relation-no-nulls-100m.parquet').select()",
                   "timed" : 1
               },
 

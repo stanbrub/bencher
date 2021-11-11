@@ -37,27 +37,32 @@ public class BencherApp {
     private static final String JOBS_PREFIX_PATH = System.getProperty("jobs.prefix.path", "jobs");
     private static final boolean GENERATE_ONLY = Boolean.parseBoolean(System.getProperty("generate.only", "False"));
 
+    private static void append(final StringBuilder sb, final List<VariableDefinition> vars) {
+        boolean first = true;
+        for (VariableDefinition variableDefinition : vars) {
+            if (!first) {
+                sb.append(",");
+            }
+            sb.append(variableDefinition.title());
+            first = false;
+        }
+    }
+
     public static String toPrettyString(Changes changes) {
         final StringBuilder sb = new StringBuilder();
         if (changes.errorMessage().isPresent()) {
             sb.append("Error: ").append(changes.errorMessage().get()).append(System.lineSeparator());
         }
         if (changes.isEmpty()) {
-            sb.append("No displayable variables updated").append(System.lineSeparator());
+            sb.append("No displayable variable changes").append(System.lineSeparator());
         } else {
-            for (VariableDefinition variableDefinition : changes.created()) {
-                sb.append(variableDefinition.type()).append(' ').append(variableDefinition.title()).append(" = <new>")
-                        .append(System.lineSeparator());
-            }
-            for (VariableDefinition variableDefinition : changes.updated()) {
-                sb.append(variableDefinition.type()).append(' ').append(variableDefinition.title())
-                        .append(" = <updated>")
-                        .append(System.lineSeparator());
-            }
-            for (VariableDefinition variableDefinition : changes.removed()) {
-                sb.append(variableDefinition.type()).append(' ').append(variableDefinition.title()).append(" <removed>")
-                        .append(System.lineSeparator());
-            }
+            sb.append("created={");
+            append(sb, changes.created());
+            sb.append("}, updated={");
+            append(sb, changes.updated());
+            sb.append("}, removed={");
+            append(sb, changes.removed());
+            sb.append("}").append(System.lineSeparator());
         }
         return sb.toString();
     }

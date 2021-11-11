@@ -285,6 +285,17 @@ Software is often like a late-spring ski report: bare spots and limitations do e
 - Sequences which are shuffled will produce an ordered list in memory, then shuffle that list. For large lists, this uses a lot of memory and takes some time. The time and space complexities are linear, but are noticable after 100 million integers or so.
 - Parquet output file is not named correctly.
 
+# How to run several benchmarks in one go #
+
+For DHC try:
+```
+./gradlew run --args="$(echo $(cat suites/all-select-non-null.txt))"
+```
+
+For the pyarrow comparison/reference benchmarks try:
+```
+$ cd jobs; python3 pyarrow/bench.py /a0/h/cfs/dh/oss1/deephaven-core $(cat ../suites/pyarrow-all-select-non-null.txt)
+```
 
 ## Missing Features ##
 

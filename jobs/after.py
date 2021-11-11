@@ -8,7 +8,7 @@ import csv
 
 #
 # Capture how much time was spent in gc during the benchmark operation; if this number
-# is comparable to the ellapsed benchmark time, then our results are invalidated and
+# is comparable to the elapsed benchmark time, then our results are invalidated and
 # we need to run with more memory / bigger Java heap.
 #
 runtime_memory.read(runtime_memory_pos)
@@ -20,7 +20,7 @@ gc_seconds = \
 # have been defined previously in the execution environment.
 #
 
-ellapsed_seconds = (time_end_ns - time_start_ns) / (1000*1000*1000.0)
+elapsed_seconds = (time_end_ns - time_start_ns) / (1000*1000*1000.0)
 
 # Ensure process information is kept so we know the characteristics of the machine where the test ran.
 # The following code will ensure a csv file with process information is saved, if it does not already exist.
@@ -40,8 +40,8 @@ timestamp_utc = datetime.datetime.fromtimestamp(now, pytz.UTC)
 timestamp_nyc = datetime.datetime.fromtimestamp(now, pytz.timezone('America/New_York'))
 
 # Append to bench-results.csv our results.
-header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'ellapsed_seconds' ]
-fields = [ bench_name, timestamp_nyc, timestamp_utc, process_unique_id, gc_seconds, ellapsed_seconds ]
+header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'elapsed_seconds' ]
+fields = [ bench_name, timestamp_nyc, timestamp_utc, process_unique_id, gc_seconds, elapsed_seconds ]
 results_file = '/data/bench-results.csv'
 need_header = not os.path.exists(results_file)
 with open(results_file, 'a') as file:

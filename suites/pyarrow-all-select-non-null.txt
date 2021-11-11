@@ -1,0 +1,6 @@
+select-by/pyarrow/pyarrow-select-by-bench-no-nulls-100m.py
+select-update/pyarrow/pyarrow-select-update-bench-no-nulls-100m.py
+select-aj/pyarrow/pyarrow-select-aj-bench-no-nulls-100m-1m.py
+select-join/pyarrow/pyarrow-select-join-bench-no-nulls-100m.py
+select-where/pyarrow/pyarrow-select-where-bench-no-nulls-100m.py
+select-view/pyarrow/pyarrow-select-view-bench-no-nulls-100m.py

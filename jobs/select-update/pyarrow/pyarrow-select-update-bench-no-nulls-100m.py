@@ -1,12 +1,12 @@
 import pyarrow.dataset as ds
-import time
 
-df = ds.dataset(output_prefix_path + '/data/relation-no-nulls-100m.parquet', format='parquet').to_table().to_pandas()
-
-start_time = time.time()
-df['composite_id'] = df['adjective_id'] * 643 + df['animal_id']
-count = len(df)
-end_time = time.time()
-
-print(count)
-print(end_time - start_time)
+def bench_definition(output_prefix_path):
+    df = ds.dataset(output_prefix_path + '/data/relation-no-nulls-100m.parquet', format='parquet').to_table().to_pandas()
+    def after():
+        nonlocal df
+        del df
+    def do():
+        df['composite_id'] = df['adjective_id'] * 643 + df['animal_id']
+        return len(df.index)
+    bench_name = 'pyarrow-select-update-bench-no-nulls-100m'
+    return (bench_name, do, after)

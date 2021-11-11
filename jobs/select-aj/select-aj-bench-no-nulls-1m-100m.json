@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "As Of Join 100m work queue elements against 1m audit elements, both tables select()ed in memory first",
+      "title": "As Of Join 1m audit elements against 100m work queue elements, by user_id, both tables select()ed in memory first",
       "generator_files": [ "workqueue-no-nulls-100m.json", "auditqueue-no-nulls-1m.json" ],
       "benchmark": {
           "statements" : [
@@ -35,7 +35,7 @@
                   "title" : "perform aj",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = workqueue.aj(auditqueue, 'user_id, timestamp', 'audit_timestamp = timestamp')",
+                      "result = auditqueue.aj(workqueue, 'user_id, timestamp', 'work_timestamp = timestamp')",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

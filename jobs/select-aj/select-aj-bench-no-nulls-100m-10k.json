@@ -9,7 +9,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "tag = '100m-10k'",
+                      "tag = 'no-nulls-100m-10k'",
                       "bench_name = 'select-aj-bench-' + tag",
                   ],
                   "timed" : 0

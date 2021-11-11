@@ -8,7 +8,7 @@
             "order": "Increasing",
             "seed": "8675309",
             "range_start": "1",
-            "range_stop": "1000000",
+            "range_stop": "100000",
             "percent_null": "0"
         },
         {
@@ -16,7 +16,7 @@
             "generation_type": "list",
             "type": "INT32",
             "values": [ "1001", "1002", "1003", "1004" ],
-            "count": "1000000",
+            "count": "100000",
             "seed": "1",
             "percent_null": "0"
         },

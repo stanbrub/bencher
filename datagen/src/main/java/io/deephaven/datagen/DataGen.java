@@ -19,7 +19,6 @@ import org.apache.parquet.schema.Types;
 public class DataGen {
 
     private static final boolean OVERWRITE = Boolean.parseBoolean(System.getProperty("data.overwrite", "true"));
-    private static final String OUTPUT_PREFIX_PATH = System.getProperty("output.prefix.path", ".");
     private static final boolean FORCE_GENERATION = Boolean.parseBoolean(System.getProperty("force.generation", "False"));
 
     private enum OutputFormat {
@@ -66,7 +65,8 @@ public class DataGen {
         }
     }
 
-    private static String getOutputFilename(final String generatorFilename, final OutputFormat format) {
+    private static String getOutputFilename(
+            final String outputPrefixPath, final String generatorFilename, final OutputFormat format) {
         final String basename = strip(generatorFilename);
         final String extension;
         switch (format) {
@@ -79,7 +79,7 @@ public class DataGen {
             default:
                 throw new IllegalStateException("unrecognized format " + format);
         }
-        return OUTPUT_PREFIX_PATH + File.separator + basename + "." + extension;
+        return outputPrefixPath + File.separator + basename + "." + extension;
     }
 
     /***
@@ -197,12 +197,13 @@ public class DataGen {
     /**
      * generate test data by reading the given JSON file and following the directives within
      *
+     * @oaram outputPrefixPath           Base directory for generated data.
      * @param dir                        A directory relative to which interpret the generatorFilename.
      * @param generatorFilename          String with the generatorFilename to be read
      * @throws IOException
      * @throws ParseException
      */
-    public static void generateData(final File dir, final String generatorFilename) throws IOException, ParseException {
+    public static void generateData(final String outputPrefixPath, final File dir, final String generatorFilename) throws IOException, ParseException {
         final File generatorFile;
         if (!generatorFilename.startsWith(File.separator)) {
             generatorFile = Utils.locateFile(dir, generatorFilename);
@@ -216,7 +217,7 @@ public class DataGen {
         final JSONObject jsonMap = (JSONObject) new JSONParser().parse(new FileReader(generatorFile));
         final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         final OutputFormat format = getOutputFormat(documentDictionary);
-        final String outputFilename = getOutputFilename(generatorFilename, format);
+        final String outputFilename = getOutputFilename(outputPrefixPath, generatorFilename, format);
 
         if (!FORCE_GENERATION) {
             final File outputFile = new File(outputFilename);

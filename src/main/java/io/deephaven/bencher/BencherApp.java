@@ -254,13 +254,14 @@ public class BencherApp {
     private static final String me = BencherApp.class.getSimpleName();
 
     public static void main(String[] args) {
-        if (args.length < 1) {
-            System.err.println("Usage: " + me + " job.json [job.json...]");
+        if (args.length < 2) {
+            System.err.println("Usage: " + me + " output_prefix_path job.json [job.json...]");
             System.exit(1);
         }
-        final File[] jobFiles = new File[args.length];
-        for (int i = 0; i < args.length; ++i) {
-            jobFiles[i] = validate(maybeMakeRelativePath(args[i]));
+        final String outputPrefixPath = args[0];
+        final File[] jobFiles = new File[args.length - 1];
+        for (int i = 1; i < args.length; ++i) {
+            jobFiles[i - 1] = validate(maybeMakeRelativePath(args[i]));
         }
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
         final ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
@@ -278,7 +279,7 @@ public class BencherApp {
             System.exit(1);
         }
         for (final File jobFile : jobFiles) {
-            run(console, jobFile);
+            run(console, outputPrefixPath, jobFile);
         }
         shutdown(scheduler, managedChannel);
     }
@@ -296,7 +297,7 @@ public class BencherApp {
         return jobFile;
     }
 
-    private static void run(final ConsoleSession console, final File jobFile) {
+    private static void run(final ConsoleSession console, final String outputPrefixPath, final File jobFile) {
         final File inputFileDir = jobFile.getParentFile();
 
         // open and read the definition file to an array of definition objects
@@ -334,7 +335,7 @@ public class BencherApp {
             // generate data, then run the benchmark script
             for (final String generatorFilename : generatorFilenames) {
                 try {
-                    DataGen.generateData(inputFileDir, generatorFilename);
+                    DataGen.generateData(outputPrefixPath, inputFileDir, generatorFilename);
                 } catch (IOException ex) {
                     System.err.printf(me + ": Couldn't read generator file \"%s\": %s\n", generatorFilename, ex.getMessage());
                     System.exit(1);

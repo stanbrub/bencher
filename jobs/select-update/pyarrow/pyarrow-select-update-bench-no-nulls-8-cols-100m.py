@@ -15,5 +15,5 @@ def bench_definition(output_prefix_path):
         df['vp7'] = df['adjective_id'] + df['animal_id'] + 7
         df['vp8'] = df['adjective_id'] + df['animal_id'] + 8
         return len(df.index)
-    bench_name = 'pyarrow-select-update-bench-no-nulls-100m'
+    bench_name = 'pyarrow-select-update-bench-no-nulls-8-cols-100m'
     return (bench_name, do, after)

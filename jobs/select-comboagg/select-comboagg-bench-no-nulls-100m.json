@@ -33,7 +33,7 @@
                   "title" : "perform ComboAgg",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.by(caf.AggCombo(caf.AggMin('MinAdj=adjective_id'), caf.AggMax('MaxAdj=adjective_id'), caf.AggAvg('AvgAdj=adjective_id'), caf.AggFirst('FirstAdj=adjective_id'), caf.AggLast('LastAdj=adjective_id'), caf.AggCount('CountAdj')), 'animal_id')",
+                      "result = relation.by(caf.AggCombo(caf.AggSum('SumAdj=adjective_id'),caf.AggMin('MinAdj=adjective_id'), caf.AggMax('MaxAdj=adjective_id'), caf.AggAvg('AvgAdj=adjective_id'), caf.AggStd('StdAdj=adjective_id'), caf.AggFirst('FirstAdj=adjective_id'), caf.AggLast('LastAdj=adjective_id'), caf.AggCount('CountAdj')), 'animal_id')",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

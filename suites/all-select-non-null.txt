@@ -5,6 +5,7 @@ select-aj/select-aj-bench-no-nulls-no-by-1m-100m.json
 select-by/select-by-bench-no-nulls-100m.json
 select-comboagg/select-comboagg-bench-no-nulls-100m.json
 select-join/select-join-bench-no-nulls-100m.json
+select-sort/select-sort-bench-no-nulls-100m.json
 select-update/select-update-bench-no-nulls-100m.json
 select-update/select-update-bench-no-nulls-8-cols-100m.json
 select-view/select-view-bench-no-nulls-100m.json

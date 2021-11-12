@@ -258,15 +258,42 @@ public class BencherApp {
 
     private static final String me = BencherApp.class.getSimpleName();
 
+    private static void usage() {
+        System.err.println("Usage: " + me + " [-n iterations] output_prefix_path job.json [job.json...]");
+        System.exit(1);
+    }
+
     public static void main(String[] args) {
-        if (args.length < 2) {
-            System.err.println("Usage: " + me + " output_prefix_path job.json [job.json...]");
-            System.exit(1);
+        final int iterations;
+        final String outputPrefixPath;
+        final File[] jobFiles;
+        final int filesStart;
+        if (args.length > 0 && args[0].equals("-n")) {
+            if (args.length < 4) {
+                usage();
+            }
+            try {
+                iterations = Integer.parseInt(args[1]);
+            } catch (NumberFormatException ex) {
+                System.err.printf("%s: '%s' is not a valid number of iterations.\n", me, args[1]);
+                usage();
+                // keep the compiler happy
+                throw new IllegalStateException();
+            }
+            outputPrefixPath = args[2];
+            jobFiles = new File[args.length - 3];
+            filesStart = 3;
+        } else {
+            iterations = 1;
+            if (args.length < 2) {
+                usage();
+            }
+            outputPrefixPath = args[0];
+            jobFiles = new File[args.length - 1];
+            filesStart = 1;
         }
-        final String outputPrefixPath = args[0];
-        final File[] jobFiles = new File[args.length - 1];
-        for (int i = 1; i < args.length; ++i) {
-            jobFiles[i - 1] = validate(maybeMakeRelativePath(args[i]));
+        for (int i = filesStart; i < args.length; ++i) {
+            jobFiles[i - filesStart] = validate(maybeMakeRelativePath(args[i]));
         }
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
         final ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
@@ -284,7 +311,7 @@ public class BencherApp {
             System.exit(1);
         }
         for (final File jobFile : jobFiles) {
-            run(console, outputPrefixPath, jobFile);
+            run(console, outputPrefixPath, jobFile, iterations);
         }
         shutdown(scheduler, managedChannel);
     }
@@ -302,7 +329,7 @@ public class BencherApp {
         return jobFile;
     }
 
-    private static void run(final ConsoleSession console, final String outputPrefixPath, final File jobFile) {
+    private static void run(final ConsoleSession console, final String outputPrefixPath, final File jobFile, final int iterations) {
         final File inputFileDir = jobFile.getParentFile();
 
         // open and read the definition file to an array of definition objects
@@ -367,7 +394,12 @@ public class BencherApp {
                         System.exit(1);
                     }
                 }
-                runBenchmark(console, inputFileDir, benchmarkObject);
+                for (int i = 0; i < iterations; ++i) {
+                    if (iterations > 1) {
+                        System.out.printf("Iteration %d.\n", i + 1);
+                    }
+                    runBenchmark(console, inputFileDir, benchmarkObject);
+                }
             } catch (IOException ex) {
                 if (benchFilename != null) {
                     System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex.getMessage());

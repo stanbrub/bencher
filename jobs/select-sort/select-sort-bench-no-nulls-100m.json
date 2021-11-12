@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Update 1 column over 100m relation table already in memory via select",
+      "title": "Sort 100m relation table on 2 columns, table already in memory via select",
       "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -11,7 +11,7 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
-                      "bench_name = 'select-update-bench-' + tag",
+                      "bench_name = 'select-sort-bench-' + tag",
                   ],
                   "timed" : 0
               },
@@ -29,11 +29,11 @@
               },
 
               {
-                  "title" : "perform update",
+                  "title" : "perform where over earlier computed select",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.update('composite_id = 643*adjective_id + animal_id')",
-                      "time_end_ns = time.perf_counter_ns()"
+                      "result = relation.sort('animal_id', 'adjective_id')"
+                      "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1
               },

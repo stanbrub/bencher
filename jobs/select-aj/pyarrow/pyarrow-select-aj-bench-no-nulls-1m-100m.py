@@ -9,5 +9,5 @@ def bench_definition(output_prefix_path):
         del workqueue
         del auditqueue
     bench_lambda = lambda: len(pd.merge_asof(left=auditqueue, right=workqueue, on='timestamp', by='user_id').index)
-    bench_name = 'pyarrow-select-aj-bench-no-nulls-100m-1m'
+    bench_name = 'pyarrow-select-aj-bench-no-nulls-1m-100m'
     return (bench_name, bench_lambda, after)

@@ -1,24 +1,27 @@
 {
   "benchmarks": [
     {
-      "title": "Sort 100m relation table on 2 columns, table already in memory via select",
-      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "title": "As Of Join 100m work queue elements against 1m audit elements, no by column",
+      "generator_files": [ "workqueue-no-nulls-100m.json", "auditqueue-no-nulls-1m.json" ],
       "benchmark": {
           "statements" : [
               {
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
-                      "tag = 'no-nulls-100m'",
-                      "bench_name = 'select-sort-bench-' + tag",
+                      "tag = 'no-nulls-no-by-100m-1m'",
+                      "bench_name = 'aj-bench-' + tag",
                   ],
                   "timed" : 0
               },
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
+                  "text" : [
+                      "from deephaven.ParquetTools import readTable", 
+                      "workqueue = readTable('/data/workqueue-no-nulls-100m.parquet')",
+                      "auditqueue = readTable('/data/auditqueue-no-nulls-1m.parquet')",
+                  ],
                   "timed" : 1
               },
 
@@ -29,10 +32,10 @@
               },
 
               {
-                  "title" : "perform sort over earlier computed select",
+                  "title" : "perform aj",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sort('animal_id', 'adjective_id')"
+                      "result = workqueue.aj(auditqueue, 'timestamp', 'audit_timestamp = timestamp')",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

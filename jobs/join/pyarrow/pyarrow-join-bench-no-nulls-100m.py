@@ -10,6 +10,12 @@ def bench_definition(output_prefix_path):
         del animals
         del adjectives
         del relation
-    bench_lambda = lambda: len(pd.merge(pd.merge(relation.to_pandas(), adjectives.to_pandas(), how='left', on='adjective_id'), animals.to_pandas(), how='left', on='animal_id')[['Values', 'adjective_name', 'animal_name']].index)
+    def do():
+        re = relation.to_pandas()
+        ad = adjectives.to_pandas()
+        an = animals.to_pandas()
+        j1 = pd.merge(re, ad, how='left', on='adjective_id')
+        j2 = pd.merge(j1, an, how='left', on='animal_id')[['Values', 'adjective_name', 'animal_name']]
+        return len(j2.index)
     bench_name = 'pyarrow-join-bench-no-nulls-100m'
-    return (bench_name, bench_lambda, after)
+    return (bench_name, do, after)

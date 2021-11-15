@@ -289,12 +289,12 @@ Software is often like a late-spring ski report: bare spots and limitations do e
 
 For DHC try:
 ```
-./gradlew run --args="$(echo $(cat suites/all-select-non-null.txt))"
+./gradlew run --args="$(echo $(cat suites/all-select-no-null.txt))"
 ```
 
 For the pyarrow comparison/reference benchmarks try:
 ```
-$ cd jobs; python3 pyarrow/bench.py /a0/h/cfs/dh/oss1/deephaven-core $(cat ../suites/pyarrow-all-select-non-null.txt)
+$ cd jobs; python3 pyarrow/bench.py /a0/h/cfs/dh/oss1/deephaven-core $(cat ../suites/pyarrow-all-select-no-null.txt)
 ```
 
 ## Missing Features ##

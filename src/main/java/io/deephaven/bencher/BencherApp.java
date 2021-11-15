@@ -138,7 +138,9 @@ public class BencherApp {
         return jsonMap;
     }
 
-    static void runBenchmark(final ConsoleSession console, final File baseDir, final JSONObject jsonMap) {
+    static void runBenchmark(
+            final int iter, final int nIter, final String benchTitle,
+            final ConsoleSession console, final File baseDir, final JSONObject jsonMap) {
         final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
 
@@ -146,6 +148,7 @@ public class BencherApp {
         final LiveVariablesTracker varTracker = new LiveVariablesTracker();
         // for each statement ...
         int statementNo = 0;
+        System.out.printf("Starting iteration %d of %d for \"%s\"\n", iter + 1, nIter, benchTitle);
         for (final Object statementObject : statements) {
             ++statementNo;
             final Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
@@ -237,6 +240,8 @@ public class BencherApp {
                 System.err.printf("Cleanup failed to remove all variables: %s\n", varTracker);
                 System.exit(1);
             }
+            System.out.printf("Executed cleanup\n");
+            System.out.printf("Finished iteration %d of %d for \"%s\"\n", iter + 1, nIter, benchTitle);
         }
     }
 
@@ -395,10 +400,7 @@ public class BencherApp {
                     }
                 }
                 for (int i = 0; i < iterations; ++i) {
-                    if (iterations > 1) {
-                        System.out.printf("Iteration %d.\n", i + 1);
-                    }
-                    runBenchmark(console, inputFileDir, benchmarkObject);
+                    runBenchmark(i, iterations, title, console, inputFileDir, benchmarkObject);
                 }
             } catch (IOException ex) {
                 if (benchFilename != null) {

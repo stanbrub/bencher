@@ -7,6 +7,8 @@ import java.io.IOException;
 import java.util.*;
 
 // https://github.com/fangyidong/json-simple
+import org.apache.parquet.hadoop.ParquetWriter;
+import org.apache.parquet.hadoop.api.WriteSupport;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.*;
 
@@ -18,8 +20,10 @@ import org.apache.parquet.schema.Types;
 
 public class DataGen {
 
-    private static final boolean OVERWRITE = Boolean.parseBoolean(System.getProperty("data.overwrite", "true"));
-    private static final boolean FORCE_GENERATION = Boolean.parseBoolean(System.getProperty("force.generation", "False"));
+    private static final boolean OVERWRITE = Boolean.parseBoolean(System.getProperty(
+            "data.overwrite", "true"));
+    private static final boolean FORCE_GENERATION = Boolean.parseBoolean(System.getProperty(
+            "force.generation", "False"));
 
     private enum OutputFormat {
         PARQUET,
@@ -27,22 +31,34 @@ public class DataGen {
     }
 
     /***
-     * Construct an io.deephaven.datagen.CustomParquetWriter given the MessageType schema that we're passed.
+     * Construct a {@code ParquetWriter} given the MessageType schema that we're passed.
      *
-     * @param customWriterSupport    CustomWriterSupport for the schema we will be writing.
-     * @return          io.deephaven.datagen.CustomParquetWriter initialized with a random file name, ready to write
+     * @param outputFilePath         Where the target file will live.
+     * @param customWriterSupport    {@code CustomWriterSupport} for the schema we will be writing.
+     * @return                       {@code ParquetWriter} ready to write
      * @throws IOException
      */
-    private static CustomParquetWriter getParquetWriter(final String outputFilePath, CustomWriterSupport customWriterSupport) throws IOException {
+    private static ParquetWriter<Object[]> getParquetWriter(final String outputFilePath, CustomWriterSupport customWriterSupport) throws IOException {
 
-        File outputParquetFile = new File(outputFilePath);
+        final File outputParquetFile = new File(outputFilePath);
         if (outputParquetFile.exists() && OVERWRITE) {
             outputParquetFile.delete();
         }
-        Path path = new Path(outputParquetFile.toURI().toString());
-        return new CustomParquetWriter(
-                path, customWriterSupport, false, CompressionCodecName.ZSTD
-        );
+        final Path path = new Path(outputParquetFile.toURI().toString());
+        ParquetWriter.Builder<Object[], ?> parquetWriterBuilder = new ParquetWriter.Builder(path) {
+            @Override
+            protected ParquetWriter.Builder self() {
+                return this;
+            }
+
+            @Override
+            protected WriteSupport<Object[]> getWriteSupport(org.apache.hadoop.conf.Configuration conf) {
+                return customWriterSupport;
+            }
+        };
+        parquetWriterBuilder.withCompressionCodec(CompressionCodecName.GZIP);
+
+        return parquetWriterBuilder.build();
     }
 
     /***
@@ -87,6 +103,7 @@ public class DataGen {
      * the generators and then closes the file.
      *
      * @param outputFileName  Filename to write output to.
+     * @param columns         Column names for the columns we expect to write.
      * @param generators      Array of generators, one for each column we expect to write.
      * @throws IOException
      */
@@ -105,7 +122,7 @@ public class DataGen {
         MessageType mt = builder.named("MyMessage");
 
         final CustomWriterSupport customWriterSupport = new CustomWriterSupport(mt);
-        CustomParquetWriter pqw2 = getParquetWriter(outputFileName, customWriterSupport);
+        ParquetWriter<Object[]> pqw2 = getParquetWriter(outputFileName, customWriterSupport);
 
         final Object[] data = new Object[columns.length];
         boolean more = true;
@@ -139,10 +156,14 @@ public class DataGen {
      * Generates a CSV file from the list of generators. This function will exhaust the
      * generators. Also writes a header at the first row, using the column names.
      *
+     * @param outputFile    A {@FileWriter} where we will write to.
+     * @param columns       Column names for the columns we expect to write.
      * @param generators    Array of generators, one for each column we expect to write.
      */
     private static void generateCSV(
-            final FileWriter outputFile, final String[] columns, final DataGenerator[] generators
+            final FileWriter outputFile,
+            final String[] columns,
+            final DataGenerator[] generators
     ) throws IOException {
 
         StringBuilder headerBuilder = new StringBuilder();
@@ -195,7 +216,7 @@ public class DataGen {
     }
 
     /**
-     * generate test data by reading the given JSON file and following the directives within
+     * Generate test data by reading the given JSON file and following the directives within
      *
      * @oaram outputPrefixPath           Base directory for generated data.
      * @param dir                        A directory relative to which interpret the generatorFilename.
@@ -203,7 +224,11 @@ public class DataGen {
      * @throws IOException
      * @throws ParseException
      */
-    public static void generateData(final String outputPrefixPath, final File dir, final String generatorFilename) throws IOException, ParseException {
+    public static void generateData(
+            final String outputPrefixPath,
+            final File dir,
+            final String generatorFilename
+    ) throws IOException, ParseException {
         final File generatorFile;
         if (!generatorFilename.startsWith(File.separator)) {
             generatorFile = Utils.locateFile(dir, generatorFilename);

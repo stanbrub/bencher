@@ -24,6 +24,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.time.Duration;
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
@@ -140,7 +141,7 @@ public class BencherApp {
 
     static void runBenchmark(
             final int iter, final int nIter, final String benchTitle,
-            final ConsoleSession console, final File baseDir, final JSONObject jsonMap) {
+            final Supplier<ConsoleSession> console, final File baseDir, final JSONObject jsonMap) {
         final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
 
@@ -197,7 +198,7 @@ public class BencherApp {
             // actually execute
             final Changes changes;
             try {
-                changes = console.executeCode(statement);
+                changes = console.get().executeCode(statement);
             } catch (Exception ex) {
                 System.err.printf("Execution of \"%s\" failed: %s\n", title, ex.getMessage());
                 System.exit(1);
@@ -228,7 +229,7 @@ public class BencherApp {
         if (!SKIP_CLEANUP) {
             final Changes changes;
             try {
-                changes = console.executeCode(varTracker.generateCleanupPythonStatement());
+                changes = console.get().executeCode(varTracker.generateCleanupPythonStatement());
             } catch (Exception ex) {
                 System.err.printf("Execution of final clean up variables phase failed: %s\n", ex.getMessage());
                 System.exit(1);
@@ -268,6 +269,50 @@ public class BencherApp {
         System.exit(1);
     }
 
+    // Create a session and console on demand.
+    private static class SessionAndConsoleHolder implements AutoCloseable, Supplier<ConsoleSession> {
+        private ScheduledExecutorService scheduler;
+        private ManagedChannel managedChannel;
+        private Session session;
+        private ConsoleSession console;
+
+        @Override
+        public void close() {
+            console.close();
+            session.close();
+            shutdown(scheduler, managedChannel);
+        }
+
+        private void make() {
+            scheduler = Executors.newScheduledThreadPool(4);
+            final ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
+            channelBuilder.usePlaintext();
+            // channelBuilder.useTransportSecurity();
+            channelBuilder.userAgent("DHMark");
+            managedChannel = channelBuilder.build();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(scheduler, managedChannel)));
+            session = getSession(scheduler, managedChannel);
+            try {
+                console = session.console("python").get();
+            } catch (Exception ex) {
+                System.err.printf(me + ": Failed to create console session for DHC: %s, aborting\n", ex);
+                System.exit(1);
+            }
+        }
+
+        private synchronized ConsoleSession maybeMake() {
+            if (console == null) {
+                make();
+            }
+            return console;
+        }
+
+        @Override
+        public ConsoleSession get() {
+            return maybeMake();
+        }
+    }
+
     public static void main(String[] args) {
         final int iterations;
         final String outputPrefixPath;
@@ -300,25 +345,12 @@ public class BencherApp {
         for (int i = filesStart; i < args.length; ++i) {
             jobFiles[i - filesStart] = validate(maybeMakeRelativePath(args[i]));
         }
-        final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(4);
-        final ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forTarget(DH_ENDPOINT);
-        channelBuilder.usePlaintext();
-        // channelBuilder.useTransportSecurity();
-        channelBuilder.userAgent("DHMark");
-        final ManagedChannel managedChannel = channelBuilder.build();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(scheduler, managedChannel)));
-        final Session session = getSession(scheduler, managedChannel);
-        ConsoleSession console = null;
-        try {
-            console = session.console("python").get();
-        } catch (Exception ex) {
-            System.err.printf(me + ": Failed to create console session for DHC: %s, aborting\n", ex);
-            System.exit(1);
+
+        try (SessionAndConsoleHolder consoleHolder = new SessionAndConsoleHolder()) {
+            for (final File jobFile : jobFiles) {
+                run(consoleHolder, outputPrefixPath, jobFile, iterations);
+            }
         }
-        for (final File jobFile : jobFiles) {
-            run(console, outputPrefixPath, jobFile, iterations);
-        }
-        shutdown(scheduler, managedChannel);
     }
 
     private static File validate(final String jobFilename) {
@@ -334,7 +366,7 @@ public class BencherApp {
         return jobFile;
     }
 
-    private static void run(final ConsoleSession console, final String outputPrefixPath, final File jobFile, final int iterations) {
+    private static void run(final Supplier<ConsoleSession> console, final String outputPrefixPath, final File jobFile, final int iterations) {
         final File inputFileDir = jobFile.getParentFile();
 
         // open and read the definition file to an array of definition objects

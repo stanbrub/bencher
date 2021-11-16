@@ -111,7 +111,7 @@ public abstract class DataGenerator {
      * @param columnName    String with the name of this field; just for error messages
      * @return              Parquet Type corresponding to the provided ColumnType
      */
-    static public Type parquetTypeFromJSONType(ColumnType columnType, String columnName) {
+    static public Type parquetTypeFromJSONType(final ColumnType columnType, final String columnName) {
         switch (columnType) {
             case DOUBLE:
                 return Types.optional(PrimitiveType.PrimitiveTypeName.DOUBLE).named(columnName);

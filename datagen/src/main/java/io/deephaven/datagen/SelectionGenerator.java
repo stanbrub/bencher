@@ -18,14 +18,19 @@ public class SelectionGenerator extends DataGenerator {
         INDICATED,
     }
 
-    final DistributionType distribution;
-    final PercentNullManager pctNullMgr;
-    final ArrayList<String> strings;
-    final Random prng;
-    final GeneratorObjectIterator objectIterator;
+    private final DistributionType distribution;
+    private final PercentNullManager pctNullMgr;
+    private final ArrayList<String> strings;
+    private final Random prng;
+    private final GeneratorObjectIterator objectIterator;
 
-    private SelectionGenerator(ColumnType columnType, String fileName, DistributionType distribution, long seed, double pctNullMgr) {
-
+    private SelectionGenerator(
+            final ColumnType columnType,
+            final String fileName,
+            final DistributionType distribution,
+            final long seed,
+            final double pctNullMgr
+    ) {
         this.distribution = distribution;
         this.columnType = columnType;
 
@@ -50,7 +55,7 @@ public class SelectionGenerator extends DataGenerator {
         objectIterator = new GeneratorObjectIterator();
     }
 
-    static DataGenerator fromJson(String fieldName, JSONObject jo) {
+    static DataGenerator fromJson(final String fieldName, final JSONObject jo) {
 
         ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
 

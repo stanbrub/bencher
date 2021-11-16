@@ -25,7 +25,7 @@ public abstract class PercentNullManager {
      * @param seed         long with the seed to use for this PRNG
      * @return an initialized PercentNullManager
      */
-    public static PercentNullManager fromPercentage(double percent_null, long seed) {
+    public static PercentNullManager fromPercentage(final double percent_null, final long seed) {
         if (percent_null == 0.0) {
             return NO_NULLS;
         }
@@ -40,7 +40,7 @@ public abstract class PercentNullManager {
      * @param jo        JSONObject set to the JSON representation for this field
      * @return a double indicating our percent changes
      */
-    public static double parseJson(String fieldName, JSONObject jo) {
+    public static double parseJson(final String fieldName, final JSONObject jo) {
         double percent_null = 0.0;
         String pct_null = (String) jo.get("percent_null");
         if (pct_null == null) {
@@ -78,7 +78,7 @@ public abstract class PercentNullManager {
          *                    represented as a percentage (50) not a fraction (0.50)
          * @param seed        long with the seed to use for this PRNG
          */
-        private PercentNullManagerImpl(double percentNull, long seed) {
+        private PercentNullManagerImpl(final double percentNull, final long seed) {
 
             if (percentNull > 100 || percentNull < 0)
                 throw new IllegalArgumentException("percent_null must be between 0 and 100");

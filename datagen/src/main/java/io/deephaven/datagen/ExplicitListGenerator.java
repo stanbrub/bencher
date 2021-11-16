@@ -7,11 +7,11 @@ import java.util.Iterator;
 
 public class ExplicitListGenerator extends DataGenerator {
 
-    final PercentNullManager pctNullMgr;
-    final ArrayList<?> values;
-    final int count;
-    final GeneratorObjectIterator objectIterator;
-    int currentIndex;
+    private final PercentNullManager pctNullMgr;
+    private final ArrayList<?> values;
+    private final int count;
+    private final GeneratorObjectIterator objectIterator;
+    private int currentIndex;
 
     private ExplicitListGenerator(
             final ColumnType columnType,
@@ -29,7 +29,7 @@ public class ExplicitListGenerator extends DataGenerator {
         objectIterator = new GeneratorObjectIterator();
     }
 
-    static DataGenerator fromJsonFileGenerator(String fieldName, JSONObject jo) {
+    static DataGenerator fromJsonFileGenerator(final String fieldName, final JSONObject jo) {
         final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         final String filename = Utils.getStringElementValue("source_file", jo);
         final ArrayList<?> values = Utils.readFile(filename, columnType);
@@ -43,7 +43,7 @@ public class ExplicitListGenerator extends DataGenerator {
         return sg;
     }
 
-    static DataGenerator fromJsonListGenerator(String fieldName, JSONObject jo) {
+    static DataGenerator fromJsonListGenerator(final String fieldName, final JSONObject jo) {
         final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         final ArrayList<?> values = Utils.getColumnTypeElementValues(columnType,"values", jo);
         final int count = Utils.getIntElementValueOrDefault("count", jo, -1);

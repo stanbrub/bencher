@@ -19,7 +19,6 @@ public class FullRangeGenerator extends DataGenerator {
     private final long start;
     private final long stop;
     private long current;
-    private int capacity;
     private final PercentNullManager pctNullMgr;
     private final Ordering order;
     private final Random prng;
@@ -32,8 +31,14 @@ public class FullRangeGenerator extends DataGenerator {
         SHUFFLED,
     }
 
-    private FullRangeGenerator(ColumnType columnType, long start, long stop, long seed, Ordering ordering, double pctNullMgr) {
-
+    private FullRangeGenerator(
+            final ColumnType columnType,
+            final long start,
+            final long stop,
+            final long seed,
+            final Ordering ordering,
+            final double pctNullMgr
+    ) {
         if (stop < start)
             throw new IllegalArgumentException(String.format("start %d must be lower than stop %d", start, stop));
         this.start = start;
@@ -50,8 +55,7 @@ public class FullRangeGenerator extends DataGenerator {
     }
 
     private void initialize() {
-
-        capacity = (int) (stop - start + 1);
+        int capacity = (int) (stop - start + 1);
 
         if (order == Ordering.SHUFFLED) {
 
@@ -83,8 +87,7 @@ public class FullRangeGenerator extends DataGenerator {
         }
     }
 
-    static FullRangeGenerator fromJson(String fieldName, JSONObject jo) {
-
+    static FullRangeGenerator fromJson(final String fieldName, final JSONObject jo) {
         ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         switch (columnType) {
             case DOUBLE:

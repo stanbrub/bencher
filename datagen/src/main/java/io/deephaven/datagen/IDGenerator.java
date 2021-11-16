@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.Locale;
 
 public class IDGenerator extends DataGenerator {
-
     private long currentID;
     private final PercentNullManager pctNullMgr;
     private final GeneratorObjectIterator objectIterator;
@@ -130,10 +129,8 @@ public class IDGenerator extends DataGenerator {
         }
     }
 
-
     @Override
     public Iterator<Object> getIterator() {
         return objectIterator;
     }
-
 }

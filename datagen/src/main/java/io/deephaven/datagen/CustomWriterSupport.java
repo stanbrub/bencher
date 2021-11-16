@@ -13,24 +13,24 @@ import java.util.HashMap;
 import java.util.List;
 
 public class CustomWriterSupport extends WriteSupport<Object[]> {
-    final MessageType schema;
-    RecordConsumer recordConsumer;
-    final List<ColumnDescriptor> cols;
-    final int ncols;
+    private final MessageType schema;
+    private RecordConsumer recordConsumer;
+    private final List<ColumnDescriptor> cols;
+    private final int ncols;
 
-    CustomWriterSupport(MessageType schema) {
+    CustomWriterSupport(final MessageType schema) {
         this.schema = schema;
         this.cols = schema.getColumns();
         this.ncols = cols.size();
     }
 
     @Override
-    public WriteContext init(Configuration config) {
+    public WriteContext init(final Configuration config) {
         return new WriteContext(schema, new HashMap<>());
     }
 
     @Override
-    public void prepareForWrite(RecordConsumer recordConsumer) {
+    public void prepareForWrite(final RecordConsumer recordConsumer) {
         this.recordConsumer = recordConsumer;
     }
 
@@ -81,7 +81,7 @@ public class CustomWriterSupport extends WriteSupport<Object[]> {
         recordConsumer.flush();
     }
 
-    private Binary stringToBinary(String value) {
+    private Binary stringToBinary(final String value) {
         return Binary.fromString(value);
     }
 }

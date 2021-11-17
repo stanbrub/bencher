@@ -301,17 +301,9 @@ $ cd jobs; python3 pyarrow/bench.py -n 5 /a0/h/cfs/dh/oss1/deephaven-core $(cat 
 
 Several enhancements are foreseeable:
 
-- Ability to run multiple generator files in a single benchmark job
-- Avoid recreating generated files if they already exist; just get on with the benchmark
-- Find a way to template files, but vary lengths or output file names
-- Better output logging
-- Restart (or reset) the Deephaven instance between runs
-- Execute arbitrary shell commands at any point in the benchmark job; for cleanup or preparation
-- Specify the address and port of the Deephaven instance
+- Restart (or reset) the Deephaven instance between runs (other than manually)
 - Support groovy
-- Extract stats from the Deephaven instances about the run
-- Check results for correctness, even superficially
-- Configure Parquet compression type
+- Check results for correctness
 - Configure Parquet partitioning
 
 

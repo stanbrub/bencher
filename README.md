@@ -160,6 +160,21 @@ When the generator executes against this file, the first few rows look like this
 	8,20,24
 	9,74,82
 
+Uniform distribution is the default if otherwise not specified via the `distribution` key.  In general, we support:
+
+* `exponential`, with parameter `lambda` for `DOUBLE` typed columns.
+* `normal`, with parameters `mean` and `stddev` for `DOUBLE` typed columns.
+* `poisson_wait` with parameters `start_nanos` (absolute point in time where sequence of timestamps will start)
+                 and `mean_wait_nanos` (average time between events) for `TIMESTAMP_NANOS` typed columns.
+                 A column generated with this distribution will be naturally sorted in increasing point in time order.
+* `random_pick`  with parameters `options` (an array or file indicating possible values) and `weights`,
+                 a parallel array indicating probabilities.
+* `random_walk`  with parameters `initial` (the starting value) and `step`
+                 (either `+step` or `-step` will be added to the previous value for each new event).
+                 This distribution is supported for column types of `INT32`, `INT64` and `DOUBLE`.
+                 Note that the generated value can go negative even if `initial` is positive,
+                 so care must be taken if this is used for, eg, stock prices.
+* `uniform`, with parameters `lower_bound` and `upper_bound` for column types `INT32`, `INT64` and `DOUBLE`
 
 ### The Selection Generation Type ###
 
@@ -274,8 +289,12 @@ There are three possible ways to provide the code for a statement:
 # About Data Types #
 
 In CSV files, all data generated is just a string. Nulls are represented by an empty field. For example, `1,,3` has three fields: a `1`, a null, and a `3`.
+Timestamps are generated as ISO-8601 strings.
 
-Parquet files use the indicated data type in the generator file as a definition for the message data. Thus, the types supported here are limited to the types supported by Parquet. Care must be taken to get correct typing for the desired benchmark job.
+Parquet files use the indicated data type in the generator file as a definition for the message data.
+Thus, the types supported here are limited to the types supported by Parquet.
+Care must be taken to get correct typing for the desired benchmark job.
+
 
 # Limitations #
 

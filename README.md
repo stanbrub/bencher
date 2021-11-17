@@ -283,7 +283,6 @@ Software is often like a late-spring ski report: bare spots and limitations do e
 
 - Data is loaded into memory from files, and large files will take more memory.
 - Sequences which are shuffled will produce an ordered list in memory, then shuffle that list. For large lists, this uses a lot of memory and takes some time. The time and space complexities are linear, but are noticable after 100 million integers or so.
-- Parquet output file is not named correctly.
 
 # How to run several iterations for more than one benchmark job file #
 

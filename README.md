@@ -10,6 +10,40 @@ The tool consumes JSON files that define **benchmark jobs**. The **benchmark def
 
 A typical benchmark job will run a generation step to create sample data, then run a steps file to execute Deephaven commands against those data files and time their execution. With this arrangement, a myriad of interesting benchmark definitions can be created just by writing JSON files, and without touching any of the benchmark engine code.
 
+## How to run a benchmark
+
+1. Get a clone of bencher (this repo).  Let's say the location of your clone is `$BENCHER`
+2. Get a clone of DHC.  Let's say the location of your clone is `$DHC`
+3. The benchmarks are under subdirectories of the `$BENCHER/jobs` directory.
+4. Depending on the number of rows/amount of memory needed in a particular benchmark, you may need to
+   modify `$DHC/docker-compose-common.yml` and increase the memory available to the docker container;
+   if you need more memory, in the `resources` subsection of the `deploy` section of the `grpc-api` service,
+   change the value after `memory:` to the appropriate number.
+5. Start DHC.  On a separate window/shell run:
+   ```
+   cd $DHC
+   docker-compose up
+   ```
+6. To run one benchmark, say `$BENCHER/jobs/select-sort/select-sort-bench-1col-no-nulls-20m.json` do:
+   ```
+   cd $BENCHER
+   ./gradlew run --args="-n 5 $DHC/data select-sort/select-sort-bench-1col-no-nulls-20m.json"
+   ```
+   
+7. The command above will run the benchmark 5 times on the same docker instance, which will help
+   smoothing out any startup/JVM warmup costs; the benchmarks given in the command line are run
+   all on the same instance, without restarting DHC.  The code attempts its best to do session cleanup
+   between benchmark runs, removing variables and tables from the environment, etc.
+8. You can run multiple benchmarks by adding more file names to the end of the `./gradlew run ...` command line.
+9. Results for the benchmark runs are accumulated under `$DHC/data/bench-results.csv`.  One row is added
+   to that file every time a benchmark is run.
+10. To compare to python pandas/arrow, run the pyarrow corresponding benchmark code:
+    ```
+    cd $BENCHER
+    python jobs/pyarrow/bench.py -n 5 $DHC/data jobs/select-sort/pyarrow/pyarrow-select-sort-bench-1col-no-nulls-20m.py
+    ```
+11. Results for the pyarrow benchmarks are accumulated under `$DHC/data/pyarrow-bench-results.csv`
+
 ## Benchmark Jobs files ##
 
 A simple benchmark job file is given here:
@@ -305,15 +339,20 @@ Software is often like a late-spring ski report: bare spots and limitations do e
 
 # How to run several iterations for more than one benchmark job file #
 
-For DHC try:
+If the DHC clone is under `$DHC`
+
+For the DHC benchmark run:
 ```
-./gradlew run --args="-n 5 $(echo $(cat suites/all-select-no-null.txt))"
+./gradlew run --args="-n 5 $DHC $(echo $(cat suites/all-select-no-null.txt))"
 ```
 
-For the pyarrow comparison/reference benchmarks try:
+For the pyarrow comparison/reference benchmarks run:
 ```
-$ cd jobs; python3 pyarrow/bench.py -n 5 /a0/h/cfs/dh/oss1/deephaven-core $(cat ../suites/pyarrow-all-select-no-null.txt)
+$ cd jobs; python3 pyarrow/bench.py -n 5 $DHC/data $(cat ../suites/pyarrow-all-select-no-null.txt)
 ```
+
+The files `suites/all-select-no-null.txt` and `suites/pyarrow-all-select-no-null.txt` contain benchmark names
+one per line.
 
 ## Missing Features ##
 

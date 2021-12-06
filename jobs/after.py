@@ -3,7 +3,6 @@ import time
 import datetime
 import pytz
 import deephaven.TableLoggers as tl
-import deephaven.TableTools as tt
 import csv
 
 #
@@ -28,12 +27,13 @@ elapsed_seconds = (time_end_ns - time_start_ns) / (1000*1000*1000.0)
 # The row we will insert with the result later will reference the process unique id where the results where
 # generated.
 
-process_unique_id = ( jpy.get_type("io.deephaven.db.v2.utils.MemoryTableLoggers")
+process_unique_id = ( jpy.get_type("io.deephaven.engine.table.impl.util.MemoryTableLoggers")
                       .getInstance().getProcessInfo().getId().value() )
 process_info_path = '/data/' + process_unique_id + ".csv"
 
 if not os.path.exists(process_info_path):
-    tt.writeCsv(tl.processInfoLog(), process_info_path, ["Type", "Key", "Value"])
+    JCsvTools = jpy.get_type("io.deephaven.csv.CsvTools")
+    JCsvTools.writeCsv(tl.processInfoLog(), process_info_path, False, ["Type", "Key", "Value"])
 
 now = time.time()
 timestamp_utc = datetime.datetime.fromtimestamp(now, pytz.UTC)

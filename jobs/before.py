@@ -1,8 +1,9 @@
 import jpy
 
-RuntimeMemory = jpy.get_type('io.deephaven.db.v2.utils.RuntimeMemory')
+
+RuntimeMemory = jpy.get_type('io.deephaven.engine.table.impl.util.RuntimeMemory')
 runtime_memory = RuntimeMemory.getInstance()
-RuntimeMemorySample = jpy.get_type('io.deephaven.db.v2.utils.RuntimeMemory$Sample')
+RuntimeMemorySample = jpy.get_type('io.deephaven.engine.table.impl.util.RuntimeMemory$Sample')
 
 runtime_memory_pre = RuntimeMemorySample()
 runtime_memory_pos = RuntimeMemorySample()

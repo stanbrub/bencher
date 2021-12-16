@@ -33,7 +33,7 @@ public class BencherApp {
     private static final boolean TERSE = Boolean.parseBoolean(System.getProperty("terse", "False"));;
     private static final boolean SKIP_CLEANUP = Boolean.parseBoolean(System.getProperty("skip.cleanup", "False"));
     private static final Duration SESSION_TIMEOUT =
-            Duration.ofMillis(Long.parseLong(System.getProperty("session.timeout.millis", "30000")));
+            Duration.ofMillis(Long.parseLong(System.getProperty("session.timeout.millis", "300000")));
     private static final String DH_ENDPOINT = System.getProperty("dh.endpoint", "localhost:10000");
     private static final String JOBS_PREFIX_PATH = System.getProperty("jobs.prefix.path", "jobs");
     private static final boolean GENERATE_ONLY = Boolean.parseBoolean(System.getProperty("generate.only", "False"));
@@ -96,6 +96,7 @@ public class BencherApp {
         SessionImplConfig cfg = SessionImplConfig.builder()
                 .executor(scheduler)
                 .closeTimeout(SESSION_TIMEOUT)
+                .executeTimeout(Duration.ofMillis(600000))
                 .channel(new DeephavenChannel(managedChannel))
                 .build();
 
@@ -222,7 +223,7 @@ public class BencherApp {
             }
 
             if (!TERSE) {
-                System.out.printf("\"%s\": Executed, chages: %s", title, toPrettyString(changes));
+                System.out.printf("\"%s\": Executed, changes: %s", title, toPrettyString(changes));
             }
             System.out.flush();
         }

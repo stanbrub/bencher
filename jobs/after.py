@@ -19,7 +19,15 @@ gc_seconds = \
 # have been defined previously in the execution environment.
 #
 
-elapsed_seconds = (time_end_ns - time_start_ns) / (1000*1000*1000.0)
+if elapsed_benchmark_nanos is not None:
+    elapsed_seconds = elapsed_benchmark_nanos / (1000*1000*1000.0)
+else:
+    elapsed_seconds = (time_end_ns - time_start_ns) / (1000*1000*1000.0)
+
+if processed_rows is not None:
+    rows_per_second = processed_rows / elapsed_seconds
+else:
+    rows_per_second = ""
 
 # Ensure process information is kept so we know the characteristics of the machine where the test ran.
 # The following code will ensure a csv file with process information is saved, if it does not already exist.
@@ -40,8 +48,8 @@ timestamp_utc = datetime.datetime.fromtimestamp(now, pytz.UTC)
 timestamp_nyc = datetime.datetime.fromtimestamp(now, pytz.timezone('America/New_York'))
 
 # Append to bench-results.csv our results.
-header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'elapsed_seconds' ]
-fields = [ bench_name, timestamp_nyc, timestamp_utc, process_unique_id, gc_seconds, elapsed_seconds ]
+header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'elapsed_seconds', 'rows_per_second' ]
+fields = [ bench_name, timestamp_nyc, timestamp_utc, process_unique_id, gc_seconds, elapsed_seconds, rows_per_second ]
 results_file = '/data/bench-results.csv'
 need_header = not os.path.exists(results_file)
 with open(results_file, 'a') as file:

@@ -16,7 +16,7 @@ dependencies {
     implementation 'com.google.guava:guava:31.0.1-jre'
 
     // https://search.maven.org/search?q=g:io.deephaven
-    implementation 'io.deephaven:deephaven-client-session:0.5.0'
+    implementation 'io.deephaven:deephaven-java-client-session:0.7.0'
 
     implementation project(':datagen')
 

@@ -1,0 +1,70 @@
+{
+  "benchmarks": [
+    {
+      "title": "Do a sumBy on 100m rows",
+      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "check ugp",
+                  "file" : "checkugp.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "import deephaven.ParquetTools as pt",
+                      "tag = 'no-nulls-100m'",
+                      "bench_name = 'sumby-bench-' + tag + '-inc'"
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "text" : [
+                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').view('animal_id', 'Values')",
+                      "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
+                      "relation_filter = autotune(0, 1000000, 1.0, True)",
+                      "relation_filtered = relation.where(relation_filter)"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "initialize sumBy",
+                  "text" : [
+                      "result = relation_filtered.sumBy('animal_id')",
+                      "relation_filter.start()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "complete sumBy",
+                  "text" : [
+                      "relation_filter.waitForCompletion()",
+                      "elapsed_benchmark_nanos = relation_filter.durationNanos()",
+                      "processed_rows = relation.size()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

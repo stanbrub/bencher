@@ -15,8 +15,8 @@ def run_bench(bench_name : str, bench_fun, after_fun, output_path : str):
     print(elapsed_seconds)
     timestamp_utc = datetime.datetime.fromtimestamp(end_time, pytz.UTC)
     timestamp_nyc = datetime.datetime.fromtimestamp(end_time, pytz.timezone('America/New_York'))
-    header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'elapsed_seconds' ]
-    fields = [ bench_name, timestamp_nyc, timestamp_utc, elapsed_seconds ]
+    header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'elapsed_seconds' , 'rows_per_second' ]
+    fields = [ bench_name, timestamp_nyc, timestamp_utc, elapsed_seconds, "" ]
     results_file = output_path + '/pyarrow-bench-results.csv'
     need_header = not os.path.exists(results_file)
     with open(results_file, 'a') as file:

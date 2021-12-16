@@ -1,8 +1,8 @@
 {
   "benchmarks": [
     {
-      "title": "Sort 100m relation table on 2 columns, table already in memory via select",
-      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "title": "Sort 10m relation table on 1 column, repeated small steps",
+      "generator_files": [ "relation-no-nulls-10m.json" ],
       "benchmark": {
           "statements" : [
               {
@@ -10,15 +10,17 @@
                   "text" : [
                       "import time",
                       "import deephaven.ParquetTools as pt",
-                      "tag = 'no-nulls-100m'",
-                      "bench_name = 'select-sort-bench-' + tag",
+                      "tag = 'no-nulls-10m-static-repeat'",
+                      "bench_name = 'sort-bench-' + tag"
                   ],
                   "timed" : 0
               },
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').head(10_000_000).view('animal_id', 'adjective_id').select()",
+                  "text" : [
+                      "relation = pt.readTable('/data/relation-no-nulls-100m.parquet').head(10000000)"
+                  ],
                   "timed" : 1
               },
 
@@ -29,11 +31,14 @@
               },
 
               {
-                  "title" : "perform sort over earlier computed select",
+                  "title" : "do sort",
                   "text" : [
+                      "processed_rows = 0",
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sort('animal_id', 'adjective_id')"
-                      "time_end_ns = time.perf_counter_ns()",
+                      "for headSz in range(0, relation.size(), 500000):",
+                      "     result = relation.head(headSz).sort('animal_id')",
+                      "     processed_rows += result.size()",
+                      "time_end_ns = time.perf_counter_ns()"
                   ],
                   "timed" : 1
               },

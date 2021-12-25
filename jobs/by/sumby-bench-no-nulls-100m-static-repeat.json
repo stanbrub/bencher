@@ -18,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').view('animal_id', 'Values')",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('animal_id', 'Values')",
                   "timed" : 1
               },
 
@@ -35,7 +35,7 @@
                       "time_start_ns = time.perf_counter_ns()",
                       "for headSz in range(0, relation.size(), 5000000):",
                       "     relHead = relation.head(headSz)",
-                      "     result = relHead.sort('animal_id')",
+                      "     result = relHead.sumBy('animal_id')",
                       "     processed_rows += headSz",
                       "time_end_ns = time.perf_counter_ns()"
                   ],

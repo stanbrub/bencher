@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Do a countBy on 100m rows",
+      "title": "Read 100m relation table into memory via select",
       "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -11,15 +11,9 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
-                      "bench_name = 'by-bench-' + tag"
+                      "bench_name = 'select-view-bench-' + tag"
                   ],
                   "timed" : 0
-              },
-
-              {
-                  "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').view('animal_id', 'adjective_id')",
-                  "timed" : 1
               },
 
               {
@@ -29,11 +23,12 @@
               },
 
               {
-                  "title" : "perform countBy",
+                  "title" : "read table into memory",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.countBy('count', 'animal_id', 'adjective_id')",
+                      "result = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
                       "time_end_ns = time.perf_counter_ns()",
+                      "processed_rows = result.size()"
                   ],
                   "timed" : 1
               },

@@ -4,6 +4,9 @@ import pytz
 import os
 import sys
 import time
+import uuid
+
+process_uuid =  uuid.uuid4().hex
 
 def run_bench(bench_name : str, bench_fun, after_fun, output_path : str):
     start_time = time.time()
@@ -15,8 +18,8 @@ def run_bench(bench_name : str, bench_fun, after_fun, output_path : str):
     print(elapsed_seconds)
     timestamp_utc = datetime.datetime.fromtimestamp(end_time, pytz.UTC)
     timestamp_nyc = datetime.datetime.fromtimestamp(end_time, pytz.timezone('America/New_York'))
-    header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'elapsed_seconds' , 'rows_per_second' ]
-    fields = [ bench_name, timestamp_nyc, timestamp_utc, elapsed_seconds, "" ]
+    header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'elapsed_seconds' , 'rows_per_second' ]
+    fields = [ bench_name, timestamp_nyc, timestamp_utc, process_uuid, "", elapsed_seconds, "" ]
     results_file = output_path + '/pyarrow-bench-results.csv'
     need_header = not os.path.exists(results_file)
     with open(results_file, 'a') as file:
@@ -49,9 +52,9 @@ else:
     benchmarks = sys.argv[2:]
 
 for benchmark in benchmarks:
-    for _ in range(iterations):
+    for iteration in range(iterations):
         exec(open(benchmark).read())
         (bench_name, bench_fun, after_fun) = bench_definition(output_path)
         print(f"Running {benchmark}...")
         elapsed_seconds = run_bench(bench_name, bench_fun, after_fun, output_path)
-        print(f"Ran {benchmark} in {elapsed_seconds} seconds.")
+        print(f"Ran {benchmark} in {elapsed_seconds} seconds ({iteration + 1} of {iterations}).")

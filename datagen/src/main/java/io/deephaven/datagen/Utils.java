@@ -131,7 +131,7 @@ public class Utils {
             System.err.printf("File %s not found", filename);
             throw new IllegalStateException();
         } catch (IOException e) {
-            System.err.printf("IOException while reading %s: %s", filename, e.getMessage());
+            System.err.printf("IOException while reading %s: %s", filename, e);
             throw new IllegalStateException();
         }
 

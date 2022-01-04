@@ -48,7 +48,7 @@ public class SelectionGenerator extends DataGenerator {
             System.err.printf("File %s not found", fileName);
             throw new IllegalStateException();
         } catch (IOException e) {
-            System.err.printf("IOException while reading %s: %s", fileName, e.getMessage());
+            System.err.printf("IOException while reading %s: %s", fileName, e);
             throw new IllegalStateException();
         }
 

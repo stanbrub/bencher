@@ -299,7 +299,7 @@ public class DataGen {
             try {
                 outputFile = new FileWriter(outputFilename);
             } catch (IOException ex) {
-                String err = String.format("Couldn't create output file: %s\n", ex.getMessage());
+                String err = String.format("Couldn't create output file: %s\n", ex);
                 System.err.printf(err);
                 throw new InternalError(err);
             }

@@ -200,7 +200,7 @@ public class BencherApp {
             try {
                 changes = console.get().executeCode(statement);
             } catch (Exception ex) {
-                System.err.printf("Execution of \"%s\" failed: %s\n", title, ex.getMessage());
+                System.err.printf("Execution of \"%s\" failed: %s\n", title, ex);
                 System.exit(1);
                 // keep the compiler happy.
                 throw new IllegalStateException();
@@ -231,7 +231,7 @@ public class BencherApp {
             try {
                 changes = console.get().executeCode(varTracker.generateCleanupPythonStatement());
             } catch (Exception ex) {
-                System.err.printf("Execution of final clean up variables phase failed: %s\n", ex.getMessage());
+                System.err.printf("Execution of final clean up variables phase failed: %s\n", ex);
                 System.exit(1);
                 // keep the compiler happy.
                 throw new IllegalStateException();
@@ -374,13 +374,13 @@ public class BencherApp {
         try {
             benchmarks = getBenchmarks(jobFile);
         } catch (FileNotFoundException ex) {
-            System.err.printf(me + ": Couldn't find file \"%s\": %s.\n", jobFile.getAbsolutePath(), ex.getMessage());
+            System.err.printf(me + ": Couldn't find file \"%s\": %s.\n", jobFile.getAbsolutePath(), ex);
             System.exit(1);
         } catch (IOException ex) {
-            System.err.printf(me + ": Couldn't read file \"%s\": %s.\n", jobFile.getAbsolutePath(), ex.getMessage());
+            System.err.printf(me + ": Couldn't read file \"%s\": %s.\n", jobFile.getAbsolutePath(), ex);
             System.exit(1);
         } catch (ParseException ex) {
-            System.err.printf(me + ": Couldn't parse file \"%s\": %s.\n", jobFile.getAbsolutePath(), ex.getMessage());
+            System.err.printf(me + ": Couldn't parse file \"%s\": %s.\n", jobFile.getAbsolutePath(), ex);
             System.exit(1);
         }
 
@@ -406,10 +406,10 @@ public class BencherApp {
                 try {
                     DataGen.generateData(outputPrefixPath, inputFileDir, generatorFilename);
                 } catch (IOException ex) {
-                    System.err.printf(me + ": Couldn't read generator file \"%s\": %s\n", generatorFilename, ex.getMessage());
+                    System.err.printf(me + ": Couldn't read generator file \"%s\": %s\n", generatorFilename, ex);
                     System.exit(1);
                 } catch (ParseException ex) {
-                    System.err.printf(me  + ": Couldn't parse generator file \"%s\": %s\n", generatorFilename, ex.getMessage());
+                    System.err.printf(me  + ": Couldn't parse generator file \"%s\": %s\n", generatorFilename, ex);
                     System.exit(1);
                 }
             }
@@ -436,18 +436,18 @@ public class BencherApp {
                 }
             } catch (IOException ex) {
                 if (benchFilename != null) {
-                    System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex.getMessage());
+                    System.err.printf(me + ": Couldn't read benchmark file \"%s\": %s\n", benchFilename, ex);
                 } else {
-                    System.err.printf(me + ": Couldnt read benchmark: %s.\n", ex.getMessage());
+                    System.err.printf(me + ": Couldnt read benchmark: %s.\n", ex);
                 }
                 System.exit(1);
             } catch (ParseException ex) {
                 System.err.printf(me + ": Couldn't parse benchmark file \"%s\": %s\n",
-                        jobFile.getAbsolutePath(), ex.getMessage());
+                        jobFile.getAbsolutePath(), ex);
                 System.exit(1);
             } catch (Exception ex) {
                 System.err.printf(me + ": Execution failed for \"%s\": %s\n",
-                        title, ex.getMessage());
+                        title, ex);
                 System.exit(1);
             }
 

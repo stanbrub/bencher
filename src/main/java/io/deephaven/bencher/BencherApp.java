@@ -10,7 +10,7 @@ import io.deephaven.client.impl.script.VariableDefinition;
 import io.deephaven.datagen.DataGen;
 
 import io.deephaven.datagen.Utils;
-import io.deephaven.grpc_api.DeephavenChannel;
+import io.deephaven.proto.DeephavenChannel;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import org.json.simple.JSONObject;

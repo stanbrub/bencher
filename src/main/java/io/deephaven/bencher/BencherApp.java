@@ -16,6 +16,7 @@ import io.grpc.ManagedChannelBuilder;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.apache.commons.text.StringEscapeUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -142,6 +143,7 @@ public class BencherApp {
 
     static void runBenchmark(
             final int iter, final int nIter, final String benchTitle,
+            final String extraDescription,
             final Supplier<ConsoleSession> console, final File baseDir, final JSONObject jsonMap) {
         final Map<String, Object> documentDictionary = (Map<String, Object>) jsonMap;
         final ArrayList<Object> statements = (ArrayList<Object>) documentDictionary.get("statements");
@@ -151,6 +153,22 @@ public class BencherApp {
         // for each statement ...
         int statementNo = 0;
         System.out.printf("Starting iteration %d of %d for \"%s\"\n", iter + 1, nIter, benchTitle);
+
+        try {
+            // really we'd want escape python, but this should do
+            final String titleSet = "title_string = \"" + StringEscapeUtils.escapeJava(benchTitle) + "\"\n";
+            if (extraDescription == null) {
+                console.get().executeCode("extra_description = None\n" + titleSet);
+            } else {
+                console.get().executeCode("extra_description = \"" + StringEscapeUtils.escapeJava(extraDescription) + "\"\n" + titleSet);
+            }
+        } catch (Exception ex) {
+            System.err.printf("Execution of description setup failed: %s\n", ex.getMessage());
+            System.exit(1);
+            // keep the compiler happy.
+            throw new IllegalStateException();
+        }
+
         for (final Object statementObject : statements) {
             ++statementNo;
             final Map<String, Object> statementDefinitionDictionary = (Map<String, Object>) statementObject;
@@ -315,41 +333,41 @@ public class BencherApp {
     }
 
     public static void main(String[] args) {
-        final int iterations;
+        int iterations = 1;
+        String extraDescription = null;
         final String outputPrefixPath;
         final File[] jobFiles;
-        final int filesStart;
-        if (args.length > 0 && args[0].equals("-n")) {
-            if (args.length < 4) {
-                usage();
+
+        int argn = 0;
+        while (argn < args.length && args[argn].startsWith("-")) {
+            final String arg = args[argn++];
+            if ("-n".equals(arg)) {
+                try {
+                    iterations = Integer.parseInt(args[argn++]);
+                } catch (NumberFormatException ex) {
+                    System.err.printf("%s: '%s' is not a valid number of iterations.\n", me, args[1]);
+                    usage();
+                    // keep the compiler happy
+                    throw new IllegalStateException();
+                }
             }
-            try {
-                iterations = Integer.parseInt(args[1]);
-            } catch (NumberFormatException ex) {
-                System.err.printf("%s: '%s' is not a valid number of iterations.\n", me, args[1]);
-                usage();
-                // keep the compiler happy
-                throw new IllegalStateException();
+            else if ("-d".equals(arg)) {
+                extraDescription = args[argn++];
             }
-            outputPrefixPath = args[2];
-            jobFiles = new File[args.length - 3];
-            filesStart = 3;
-        } else {
-            iterations = 1;
-            if (args.length < 2) {
-                usage();
-            }
-            outputPrefixPath = args[0];
-            jobFiles = new File[args.length - 1];
-            filesStart = 1;
         }
-        for (int i = filesStart; i < args.length; ++i) {
-            jobFiles[i - filesStart] = validate(maybeMakeRelativePath(args[i]));
+
+        if (args.length - argn < 2) {
+            usage();
+        }
+        outputPrefixPath = args[argn++];
+        jobFiles = new File[args.length - argn];
+        for (int ii = 0; argn < args.length; ++ii) {
+            jobFiles[ii] = validate(maybeMakeRelativePath(args[argn++]));
         }
 
         try (SessionAndConsoleHolder consoleHolder = new SessionAndConsoleHolder()) {
             for (final File jobFile : jobFiles) {
-                run(consoleHolder, outputPrefixPath, jobFile, iterations);
+                run(consoleHolder, outputPrefixPath, jobFile, iterations, extraDescription);
             }
         }
     }
@@ -367,7 +385,7 @@ public class BencherApp {
         return jobFile;
     }
 
-    private static void run(final Supplier<ConsoleSession> console, final String outputPrefixPath, final File jobFile, final int iterations) {
+    private static void run(final Supplier<ConsoleSession> console, final String outputPrefixPath, final File jobFile, final int iterations, final String extraDescription) {
         final File inputFileDir = jobFile.getParentFile();
 
         // open and read the definition file to an array of definition objects
@@ -432,8 +450,8 @@ public class BencherApp {
                         System.exit(1);
                     }
                 }
-                for (int i = 0; i < iterations; ++i) {
-                    runBenchmark(i, iterations, title, console, inputFileDir, benchmarkObject);
+                for (int iteration = 0; iteration < iterations; ++iteration) {
+                    runBenchmark(iteration, iterations, title, extraDescription, console, inputFileDir, benchmarkObject);
                 }
             } catch (IOException ex) {
                 if (benchFilename != null) {

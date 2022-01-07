@@ -48,8 +48,8 @@ timestamp_utc = datetime.datetime.fromtimestamp(now, pytz.UTC)
 timestamp_nyc = datetime.datetime.fromtimestamp(now, pytz.timezone('America/New_York'))
 
 # Append to bench-results.csv our results.
-header = [ 'bench_name', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'elapsed_seconds', 'rows_per_second' ]
-fields = [ bench_name, timestamp_nyc, timestamp_utc, process_unique_id, gc_seconds, elapsed_seconds, rows_per_second ]
+header = [ 'bench_name', 'extra_description', 'timestamp_nyc', 'timestamp_utc', 'process_unique_id', 'gc_seconds', 'elapsed_seconds', 'rows_per_second' ]
+fields = [ bench_name, extra_description if extra_description is not None else None, timestamp_nyc, timestamp_utc, process_unique_id, gc_seconds, elapsed_seconds, rows_per_second ]
 results_file = '/data/bench-results.csv'
 need_header = not os.path.exists(results_file)
 with open(results_file, 'a') as file:

@@ -18,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').flatten().select('plant_id', 'Values')",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('plant_id', 'Values')",
                   "timed" : 1
               },
 

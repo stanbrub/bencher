@@ -1,13 +1,14 @@
 import pyarrow.dataset as ds
 
 def bench_definition(output_prefix_path):
-    rel = ds.dataset(output_prefix_path + '/data/relation-no-nulls-100m.parquet', format='parquet').to_table()
+    df = ds.dataset(output_prefix_path + '/data/relation-no-nulls-100m.parquet', format='parquet').to_table().select(["animal_id", "Values"]).to_pandas()
     def after():
-        nonlocal rel
-        del rel
+        #nonlocal rel
+        #del rel
+        nonlocal df
+        del df
     def do():
-        df = rel.to_pandas()
-        g = df[['animal_id', 'Values']].groupby(['animal_id']).sum()
+        g = df.groupby(['animal_id']).sum()
         return len(g.index)
     bench_name = 'pyarrow-by-bench-no-nulls-100m'
     return (bench_name, do, after)

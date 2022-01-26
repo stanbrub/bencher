@@ -9,6 +9,9 @@ runtime_memory_pre = RuntimeMemorySample()
 runtime_memory_pos = RuntimeMemorySample()
 runtime_memory.read(runtime_memory_pre)
 
+elapsed_benchmark_nanos = None
+processed_rows = None
+
 #
 # Do a round of gc right before starting the test, to minimize the chances
 # we require collections during the benchmark.

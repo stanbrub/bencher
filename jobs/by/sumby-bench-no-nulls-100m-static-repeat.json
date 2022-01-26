@@ -1,0 +1,54 @@
+{
+  "benchmarks": [
+    {
+      "title": "Do a sumBy on 100m rows",
+      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "import deephaven.ParquetTools as pt",
+                      "tag = 'no-nulls-100m'",
+                      "bench_name = 'sumby-bench-' + tag + '-static-repeat'"
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('animal_id', 'Values')",
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "perform sumBy",
+                  "text" : [
+                      "processed_rows = 0",
+                      "time_start_ns = time.perf_counter_ns()",
+                      "for headSz in range(0, relation.size(), 5000000):",
+                      "     relHead = relation.head(headSz)",
+                      "     result = relHead.sumBy('animal_id')",
+                      "     processed_rows += headSz",
+                      "time_end_ns = time.perf_counter_ns()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

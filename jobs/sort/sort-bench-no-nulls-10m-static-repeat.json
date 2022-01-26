@@ -1,0 +1,55 @@
+{
+  "benchmarks": [
+    {
+      "title": "Sort 10m relation table on 1 column, repeated small steps",
+      "generator_files": [ "relation-no-nulls-10m.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "import deephaven.ParquetTools as pt",
+                      "tag = 'no-nulls-10m-static-repeat'",
+                      "bench_name = 'sort-bench-' + tag"
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "text" : [
+                      "relation = pt.readTable('/data/relation-no-nulls-100m.parquet').head(10000000)"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "do sort",
+                  "text" : [
+                      "processed_rows = 0",
+                      "time_start_ns = time.perf_counter_ns()",
+                      "for headSz in range(0, relation.size(), 500000):",
+                      "     result = relation.head(headSz).sort('animal_id')",
+                      "     processed_rows += result.size()",
+                      "time_end_ns = time.perf_counter_ns()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

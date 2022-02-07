@@ -17,7 +17,7 @@ dependencies {
     implementation 'org.apache.commons:commons-text:1.9'
 
     // https://search.maven.org/search?q=g:io.deephaven
-    implementation 'io.deephaven:deephaven-java-client-session:0.8.0'
+    implementation 'io.deephaven:deephaven-java-client-session:0.9.0'
     compileOnly 'io.grpc:grpc-api:1.42.1'
     runtimeOnly 'io.grpc:grpc-netty:1.42.1'
 

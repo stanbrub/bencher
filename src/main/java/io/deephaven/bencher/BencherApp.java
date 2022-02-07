@@ -5,7 +5,7 @@ import io.deephaven.client.impl.ConsoleSession;
 import io.deephaven.client.impl.Session;
 import io.deephaven.client.impl.SessionImplConfig;
 import io.deephaven.client.impl.script.Changes;
-import io.deephaven.client.impl.script.VariableDefinition;
+import io.deephaven.client.impl.FieldInfo;
 
 import io.deephaven.datagen.DataGen;
 
@@ -39,13 +39,13 @@ public class BencherApp {
     private static final String JOBS_PREFIX_PATH = System.getProperty("jobs.prefix.path", "jobs");
     private static final boolean GENERATE_ONLY = Boolean.parseBoolean(System.getProperty("generate.only", "False"));
 
-    private static void append(final StringBuilder sb, final List<VariableDefinition> vars) {
+    private static void append(final StringBuilder sb, final List<FieldInfo> vars) {
         boolean first = true;
-        for (VariableDefinition variableDefinition : vars) {
+        for (FieldInfo variableDefinition : vars) {
             if (!first) {
                 sb.append(",");
             }
-            sb.append(variableDefinition.title());
+            sb.append(variableDefinition.name());
             first = false;
         }
     }
@@ -59,11 +59,11 @@ public class BencherApp {
             sb.append("No displayable variable changes").append(System.lineSeparator());
         } else {
             sb.append("created={");
-            append(sb, changes.created());
+            append(sb, changes.changes().created());
             sb.append("}, updated={");
-            append(sb, changes.updated());
+            append(sb, changes.changes().updated());
             sb.append("}, removed={");
-            append(sb, changes.removed());
+            append(sb, changes.changes().removed());
             sb.append("}").append(System.lineSeparator());
         }
         return sb.toString();
@@ -71,11 +71,11 @@ public class BencherApp {
 
     public static final class LiveVariablesTracker extends HashSet<String> {
         public void update(final Changes changes) {
-            for (final VariableDefinition variableDefinition : changes.created()) {
-                super.add(variableDefinition.title());
+            for (final FieldInfo variableDefinition : changes.changes().created()) {
+                super.add(variableDefinition.name());
             }
-            for (final VariableDefinition variableDefinition : changes.removed()) {
-                super.remove(variableDefinition.title());
+            for (final FieldInfo variableDefinition : changes.changes().removed()) {
+                super.remove(variableDefinition.name());
             }
         }
 

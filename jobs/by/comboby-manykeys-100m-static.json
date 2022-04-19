@@ -1,8 +1,8 @@
 {
   "benchmarks": [
     {
-      "title": "Do a sumBy on 100m rows, 1M cardinality",
-      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "title": "Do a comboBy on 100m rows, 50M cardinality",
+      "generator_files": [ "relation-manykeys-100m.json" ],
       "benchmark": {
           "statements" : [
               {
@@ -17,7 +17,7 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
-                      "bench_name = 'sumby-plant-static'"
+                      "bench_name = 'comboby-manykeys-static'"
                   ],
                   "timed" : 0
               },
@@ -25,9 +25,15 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('plant_id', 'Values')"
+            	      "relation = pt.readTable('/data/relation-manykeys-100m.parquet').select('key1', 'Values')"
                   ],
                   "timed" : 1
+              },
+
+              {
+                  "title" : "setup agg list",
+                  "file" : "by/agglist.py",
+                  "timed" : 0
               },
 
               {
@@ -37,10 +43,10 @@
               },
 
               {
-                  "title" : "perform sumBy",
+                  "title" : "perform comboBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sumBy('plant_id')",
+                      "result = relation.aggBy(agg_list, 'key1')",
                       "time_end_ns = time.perf_counter_ns()",
                       "processed_rows = relation.size()"
                   ],

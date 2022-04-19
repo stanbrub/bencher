@@ -1,8 +1,8 @@
 {
   "benchmarks": [
     {
-      "title": "Do a countBy one column on 100m rows",
-      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "title": "Do a countBy on 100m rows, 50M cardinality",
+      "generator_files": [ "relation-manykeys-100m.json" ],
       "benchmark": {
         "statements" : [
           {
@@ -11,16 +11,22 @@
               "import time",
               "import deephaven.ParquetTools as pt",
               "tag = 'no-nulls-100m'",
-              "bench_name = 'countby1-bench-' + tag"
+              "bench_name = 'countby-filter-manykeys-static'"
             ],
             "timed" : 0
           },
 
           {
             "title" : "load tables",
-            "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('adjective_id')",
+            "text" : "relation = pt.readTable('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
             "timed" : 1
           },
+
+	  {
+	    "title" : "setup agg list",
+	    "file" : "by/agglist.py",
+	    "timed" : 0
+	  },
 
           {
             "title" : "setup metrics",
@@ -32,7 +38,7 @@
             "title" : "perform countBy",
             "text" : [
               "time_start_ns = time.perf_counter_ns()",
-              "result = relation.countBy('count', 'adjective_id')",
+              "result = relation.aggBy(agg_list, 'key1').where('Count % 2 == 1').dropColumns('Count', 'key1').sumBy()",
               "time_end_ns = time.perf_counter_ns()",
               "processed_rows = relation.size()"
             ],

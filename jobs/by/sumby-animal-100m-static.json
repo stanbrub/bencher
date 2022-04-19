@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Do a sumBy on 100m rows",
+      "title": "Do a sumBy on 100m rows, 249 cardinality",
       "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -17,7 +17,7 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
-                      "bench_name = 'sumby-bench-' + tag + '-inc'"
+                      "bench_name = 'sumby-animal-static'"
                   ],
                   "timed" : 0
               },
@@ -25,10 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('animal_id', 'Values')",
-                      "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
-                      "relation_filter = autotune(0, 1000000, 1.0, True)",
-                      "relation_filtered = relation.where(relation_filter)"
+                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('animal_id', 'Values')"
                   ],
                   "timed" : 1
               },
@@ -40,23 +37,16 @@
               },
 
               {
-                  "title" : "initialize sumBy",
+                  "title" : "perform sumBy",
                   "text" : [
-                      "result = relation_filtered.sumBy('animal_id')",
-                      "relation_filter.start()"
-                  ],
-                  "timed" : 1
-              },
-
-              {
-                  "title" : "complete sumBy",
-                  "text" : [
-                      "relation_filter.waitForCompletion()",
-                      "elapsed_benchmark_nanos = relation_filter.durationNanos()",
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = relation.sumBy('animal_id')",
+                      "time_end_ns = time.perf_counter_ns()",
                       "processed_rows = relation.size()"
                   ],
                   "timed" : 1
               },
+
 
               {
                   "title" : "post processing",
@@ -68,8 +58,7 @@
                   "title" : "session cleanup",
                   "text" : [
                       "del relation",
-                      "del relation_filter",
-                      "del relation_filtered"
+                      "del result"
                   ],
                   "timed" : 0
               }

@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Do a sumBy on 100m rows, 1M cardinality",
+      "title": "Do a countBy on 100m rows, 160K cardinality",
       "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -17,7 +17,7 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
-                      "bench_name = 'sumby-plant-static'"
+                      "bench_name = 'countby-2col-inc'"
                   ],
                   "timed" : 0
               },
@@ -25,7 +25,10 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('plant_id', 'Values')"
+                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'animal_id')",
+                      "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
+                      "relation_filter = autotune(0, 1000000, 1.0, True)",
+                      "relation_filtered = relation.where(relation_filter)"
                   ],
                   "timed" : 1
               },
@@ -37,11 +40,20 @@
               },
 
               {
-                  "title" : "perform sumBy",
+                  "title" : "initialize countBy",
                   "text" : [
-                      "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sumBy('plant_id')",
-                      "time_end_ns = time.perf_counter_ns()",
+                      "result = relation_filtered.countBy('count', 'animal_id', 'adjective_id')",
+                      "relation_filter.start()",
+		      "UpdateGraphProcessor.DEFAULT.requestRefresh()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "complete countBy",
+                  "text" : [
+                      "relation_filter.waitForCompletion()",
+                      "elapsed_benchmark_nanos = relation_filter.durationNanos()",
                       "processed_rows = relation.size()"
                   ],
                   "timed" : 1
@@ -57,6 +69,8 @@
                   "title" : "session cleanup",
                   "text" : [
                       "del relation",
+                      "del relation_filter",
+                      "del relation_filtered",
                       "del result"
                   ],
                   "timed" : 0

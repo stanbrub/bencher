@@ -8,5 +8,5 @@ def bench_definition(output_prefix_path):
     def do():
         g = df.groupby(['plant_id']).count()
         return len(g.index)
-    bench_name = 'pyarrow-countby-plant-100m'
+    bench_name = 'pyarrow-countby-plant'
     return (bench_name, do, after)

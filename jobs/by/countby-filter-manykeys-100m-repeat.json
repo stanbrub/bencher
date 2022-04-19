@@ -1,0 +1,62 @@
+{
+  "benchmarks": [
+    {
+      "title": "Do a countBy on 100m rows, 50M cardinality",
+      "generator_files": [ "relation-manykeys-100m.json" ],
+      "benchmark": {
+        "statements" : [
+          {
+            "title" : "preamble",
+            "text" : [
+              "import time",
+              "import deephaven.ParquetTools as pt",
+              "tag = 'no-nulls-100m'",
+              "bench_name = 'countby-filter-manykeys-repeat'"
+            ],
+            "timed" : 0
+          },
+
+          {
+            "title" : "load tables",
+            "text" : "relation = pt.readTable('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
+            "timed" : 1
+          },
+
+	  {
+	    "title" : "setup agg list",
+	    "file" : "by/agglist.py",
+	    "timed" : 0
+	  },
+
+          {
+            "title" : "setup metrics",
+            "file" : "before.py",
+            "timed" : 0
+          },
+
+          {
+            "title" : "load repeat function",
+            "file" : "repeat.py",
+            "timed" : 0
+          },
+
+          {
+            "title" : "perform countBy",
+            "text" : [
+	      "def applyCount(rel):",
+              "     result = rel.aggBy(agg_list, 'key1').where('Count % 2 == 1').dropColumns('Count', 'key1').sumBy()",
+	      "doRepeat(relation, 3500000, applyCount)"
+            ],
+            "timed" : 1
+          },
+
+          {
+            "title" : "post processing",
+            "file" : "after.py",
+            "timed" : 0
+          }
+        ]
+      }
+    }
+  ]
+}

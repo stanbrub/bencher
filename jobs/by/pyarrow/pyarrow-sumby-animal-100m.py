@@ -10,5 +10,5 @@ def bench_definition(output_prefix_path):
     def do():
         g = df.groupby(['animal_id']).sum()
         return len(g.index)
-    bench_name = 'pyarrow-sumby-bench-no-nulls-100m'
+    bench_name = 'pyarrow-sumby-animal'
     return (bench_name, do, after)

@@ -1,7 +1,7 @@
 {
   "benchmarks": [
     {
-      "title": "Do a sumBy on 100m rows, 1M cardinality",
+      "title": "Do a sumBy on 100m rows, 160K cardinality",
       "generator_files": [ "relation-no-nulls-100m.json" ],
       "benchmark": {
           "statements" : [
@@ -17,7 +17,7 @@
                       "import time",
                       "import deephaven.ParquetTools as pt",
                       "tag = 'no-nulls-100m'",
-                      "bench_name = 'sumby-plant-static'"
+                      "bench_name = 'sumby-2col-static'"
                   ],
                   "timed" : 0
               },
@@ -25,8 +25,8 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('plant_id', 'Values')"
-                  ],
+                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'animal_id', 'Values')"
+		  ],
                   "timed" : 1
               },
 
@@ -40,12 +40,13 @@
                   "title" : "perform sumBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sumBy('plant_id')",
+                      "result = relation.sumBy('animal_id' , 'adjective_id')",
                       "time_end_ns = time.perf_counter_ns()",
                       "processed_rows = relation.size()"
                   ],
                   "timed" : 1
               },
+
 
               {
                   "title" : "post processing",
@@ -58,7 +59,7 @@
                   "text" : [
                       "del relation",
                       "del result"
-                  ],
+		  ],
                   "timed" : 0
               }
           ]

@@ -1,7 +1,8 @@
 # Assumes the variable 'tag' is defined in the environment.
 
-from deephaven.ParquetTools import readTable
+from deephaven import parquet
 
-animals = readTable('/data/animals.parquet')
-adjectives = readTable('/data/adjectives.parquet')
-relation = readTable('/data/relation-' + str(tag) + '.parquet')
+
+animals = parquet.read('/data/animals.parquet')
+adjectives = parquet.read('/data/adjectives.parquet')
+relation = parquet.read('/data/relation-' + str(tag) + '.parquet')

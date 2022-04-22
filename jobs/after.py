@@ -2,7 +2,7 @@ import os.path
 import time
 import datetime
 import pytz
-import deephaven.TableLoggers as tl
+import deephaven_legacy.TableLoggers as tl
 import csv
 
 #

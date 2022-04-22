@@ -1,0 +1,58 @@
+{
+  "benchmarks": [
+    {
+      "title": "Join 100m 10k words",
+      "generator_files": [ "100kwords.json", "animals.json", "adjectives.json", "10kwords.json", "relation-join.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "tag = '100m'",
+                      "bench_name = 'nj-10k-int'"
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "file" : "join-tables.py",
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "select tables",
+		  "text" : [
+	              "words100k=words100k.select()",
+	              "relation_join=relation_join.select(['word_id_two', 'Values'])"
+		  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "perform join",
+                  "text" : [
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = relation_join.natural_join(words100k, ['word_id_two=word_id'], ['word']).view(['Values', 'word'])",
+                      "time_end_ns = time.perf_counter_ns()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

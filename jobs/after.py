@@ -2,7 +2,7 @@ import os.path
 import time
 import datetime
 import pytz
-import deephaven_legacy.TableLoggers as tl
+import deephaven.perfmon as pm
 import csv
 
 #
@@ -41,7 +41,7 @@ process_info_path = '/data/' + process_unique_id + ".csv"
 
 if not os.path.exists(process_info_path):
     JCsvTools = jpy.get_type("io.deephaven.csv.CsvTools")
-    JCsvTools.writeCsv(tl.processInfoLog(), process_info_path, False, ["Type", "Key", "Value"])
+    JCsvTools.writeCsv(pm.process_info_log().j_table, process_info_path, False, ["Type", "Key", "Value"])
 
 now = time.time()
 timestamp_utc = datetime.datetime.fromtimestamp(now, pytz.UTC)

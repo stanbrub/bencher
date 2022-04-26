@@ -23,6 +23,10 @@ import java.util.Locale;
  */
 public abstract class DataGenerator {
 
+    protected DataGenerator(ColumnType columnType) {
+        this.columnType = columnType;
+    }
+
     /**
      * Type of the data this column generates; only truly meaningful for Parquet output.
      */
@@ -44,7 +48,7 @@ public abstract class DataGenerator {
         }
     }
 
-    protected ColumnType columnType;
+    final protected ColumnType columnType;
 
     /**
      * Creates a DataGenerator object from a JSON representation.

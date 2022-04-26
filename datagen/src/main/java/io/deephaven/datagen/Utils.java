@@ -64,6 +64,10 @@ public class Utils {
         return getIntElementValueMaybeDefault(key, jo, true, defaultValue);
     }
 
+    public static boolean getBooleanElementValueOrDefault(final String key, final JSONObject jo, final boolean defaultValue) {
+        return getBooleanElementValueMaybeDefault(key, jo, true, defaultValue);
+    }
+
     private static int getIntElementValueMaybeDefault(
             final String key, final JSONObject jo, final boolean haveDefault, final int defaultValue) {
         final Object jsonValue = jo.get(key);
@@ -85,6 +89,29 @@ public class Utils {
                     String.format("Couldn't parse value \"%s\" for element \"%s\" as an int.", value, key),
                     ex);
         }
+    }
+
+    private static boolean getBooleanElementValueMaybeDefault(
+            final String key, final JSONObject jo, final boolean haveDefault, final boolean defaultValue) {
+        final Object jsonValue = jo.get(key);
+        if (jsonValue == null) {
+            if (haveDefault) {
+                return defaultValue;
+            } else {
+                throw new IllegalArgumentException(String.format("Missing \"%s\" element", key));
+            }
+        }
+        if (!(jsonValue instanceof String)) {
+            throw new IllegalArgumentException(String.format("Wrong type for \"%s\" element, should be string", key));
+        }
+        final String value = (String) jsonValue;
+        if (value.equalsIgnoreCase("true") || value.equalsIgnoreCase("t") || value.equalsIgnoreCase("1")) {
+            return true;
+        }
+        if (value.equalsIgnoreCase("false") || value.equalsIgnoreCase("f") || value.equalsIgnoreCase("0")) {
+            return false;
+        }
+        throw new IllegalArgumentException(String.format("Couldn't parse value \"%s\" for element \"%s\" as a boolean.", value, key));
     }
 
     public static long getLongElementValue(final String key, final JSONObject jo) {

@@ -31,8 +31,8 @@ public class SelectionGenerator extends DataGenerator {
             final long seed,
             final double pctNullMgr
     ) {
+        super(columnType);
         this.distribution = distribution;
-        this.columnType = columnType;
 
         this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
 

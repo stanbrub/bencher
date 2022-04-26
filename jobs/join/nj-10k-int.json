@@ -2,7 +2,7 @@
   "benchmarks": [
     {
       "title": "Join 100m 10k words",
-      "generator_files": [ "100kwords.json", "animals.json", "adjectives.json", "10kwords.json", "relation-join.json" ],
+      "generator_files": [ "10kwords.json", "relation-join.json" ],
       "benchmark": {
           "statements" : [
               {
@@ -18,10 +18,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "animals = parquet.read('/data/animals.parquet')",
-                      "adjectives = parquet.read('/data/adjectives.parquet')",
                       "words10k = parquet.read('/data/10kwords.parquet')",
-                      "words100k = parquet.read('/data/100kwords.parquet')",
                       "relation_join = parquet.read('/data/relation-join.parquet')",
                   ],
                   "file" : "join-tables.py",
@@ -31,7 +28,7 @@
               {
                   "title" : "select tables",
 		  "text" : [
-	              "words100k=words100k.select()",
+	              "words100k=words10k.select()",
 	              "relation_join=relation_join.select(['word_id_two', 'Values'])"
 		  ],
                   "timed" : 1
@@ -47,7 +44,7 @@
                   "title" : "perform join",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation_join.natural_join(words100k, ['word_id_two=word_id'], ['word']).view(['Values', 'word'])",
+                      "result = relation_join.natural_join(words10k, ['word_id_two=word_id'], ['word']).view(['Values', 'word'])",
                       "time_end_ns = time.perf_counter_ns()"
                   ],
                   "timed" : 1

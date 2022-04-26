@@ -1,0 +1,74 @@
+{
+  "benchmarks": [
+    {
+      "title": "Do a comboBy on 100m rows, 650 cardinality",
+      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "check ugp",
+                  "file" : "checkugp.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+                      "import deephaven.ParquetTools as pt",
+                      "tag = 'no-nulls-100m'",
+                      "bench_name = 'combosum-adjective-static'"
+                  ],
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "load tables",
+                  "text" : [
+                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'Values')"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "setup agg list",
+                  "file" : "by/agglist-sum.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "perform comboBy",
+                  "text" : [
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = relation.aggBy(agg_list, 'adjective_id')",
+                      "time_end_ns = time.perf_counter_ns()",
+                      "processed_rows = relation.size()"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "session cleanup",
+                  "text" : [
+                      "del relation",
+                      "del result"
+                  ],
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

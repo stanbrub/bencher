@@ -39,6 +39,7 @@ public class FullRangeGenerator extends DataGenerator {
             final Ordering ordering,
             final double pctNullMgr
     ) {
+        super(columnType);
         if (stop < start)
             throw new IllegalArgumentException(String.format("start %d must be lower than stop %d", start, stop));
         this.start = start;
@@ -46,8 +47,6 @@ public class FullRangeGenerator extends DataGenerator {
         this.prng = new Random(seed);
         this.order = ordering;
         this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
-
-        this.columnType = columnType;
 
         initialize();
 
@@ -87,14 +86,14 @@ public class FullRangeGenerator extends DataGenerator {
         }
     }
 
-    static FullRangeGenerator fromJson(final String fieldName, final JSONObject jo) {
+    static DataGenerator fromJson(final String fieldName, final JSONObject jo) {
         ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         switch (columnType) {
             case DOUBLE:
             case INT32:
             case INT64:
-                break;
             case STRING:
+                break;
             case TIMESTAMP_NANOS:
                 throw new IllegalArgumentException(
                         "Only column types DOUBLE, INT32 or INT64 are supported for " +
@@ -129,13 +128,18 @@ public class FullRangeGenerator extends DataGenerator {
         double percent_null = PercentNullManager.parseJson(fieldName, jo);
 
         FullRangeGenerator frg = new FullRangeGenerator(
-                columnType,
+                columnType == ColumnType.STRING ? ColumnType.INT64 : columnType,
                 Long.parseLong((String) jo.get("range_start")),
                 Long.parseLong((String) jo.get("range_stop")),
                 Long.parseLong((String) jo.get("seed")),
                 order,
                 percent_null
         );
+
+        if (columnType == ColumnType.STRING) {
+            boolean hex = Utils.getBooleanElementValueOrDefault("hex", jo, false);
+            return new LongToStringDataGeneratorAdapter(frg, hex);
+        }
 
         return frg;
     }

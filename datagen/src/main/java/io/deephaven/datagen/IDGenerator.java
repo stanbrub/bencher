@@ -10,6 +10,7 @@ public class IDGenerator extends DataGenerator {
     private final PercentNullManager pctNullMgr;
     private final GeneratorObjectIterator objectIterator;
     private final Increment increment;
+    private final boolean hexString;
 
     enum Increment {
         INCREASING,
@@ -21,26 +22,31 @@ public class IDGenerator extends DataGenerator {
             final long start_id,
             final long seed,
             final Increment increment,
-            final double pctNullMgr) {
+            final double pctNullMgr,
+            boolean hexString) {
 
+        super(columnType);
         this.currentID = start_id;
         this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
-        this.columnType = columnType;
 
         this.increment = increment;
+        this.hexString = hexString;
 
         this.objectIterator = new GeneratorObjectIterator();
     }
 
 
     static IDGenerator fromJson(final String fieldName, final JSONObject jo) {
+        boolean hexString = false;
         final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         switch (columnType) {
             case INT32:
             case INT64:
                 break;
-            case DOUBLE:
             case STRING:
+                hexString = Utils.getBooleanElementValueOrDefault("hex", jo, false);
+                break;
+            case DOUBLE:
             case TIMESTAMP_NANOS:
                 throw new IllegalArgumentException(
                         "Only column types INT32 or INT64 are supported for " +
@@ -76,7 +82,8 @@ public class IDGenerator extends DataGenerator {
                 Long.parseLong((String) jo.get("start_id")),
                 Long.parseLong((String) jo.get("seed")),
                 increment,
-                percent_null
+                percent_null,
+                hexString
         );
 
         return frg;
@@ -124,6 +131,12 @@ public class IDGenerator extends DataGenerator {
                 return (int) next;
             else if (columnType == ColumnType.INT64)
                 return Long.toString(next);
+            else if (columnType == ColumnType.STRING)
+                if (hexString) {
+                    return Long.toHexString(next);
+                } else {
+                    return Long.toString(next);
+                }
             else
                 throw new InternalError("Need to implement more types");
         }

@@ -16,9 +16,9 @@ public class RandomGenerator extends DataGenerator {
 
     private RandomGenerator(
             final ColumnType columnType, final long seed, final double pctNullMgr, final Iterator<?> it) {
+        super(columnType);
         this.pctNullMgr = PercentNullManager.fromPercentage(pctNullMgr, seed);
         objectIterator = new GeneratorObjectIterator();
-        this.columnType = columnType;
         this.it = it;
     }
 
@@ -271,7 +271,7 @@ public class RandomGenerator extends DataGenerator {
         return objectIterator;
     }
 
-    static RandomGenerator uniformFromJson(
+    static DataGenerator uniformFromJson(
             final String fieldName,
             final JSONObject jo,
             final ColumnType columnType,
@@ -301,7 +301,15 @@ public class RandomGenerator extends DataGenerator {
                 return RandomGenerator.ofUniformDouble(columnType, lowerBound, upperBound, seed, percentNull);
             }
 
-            case STRING:
+            case STRING: {
+                final long lowerBound = Utils.getLongElementValue("lower_bound", jo);
+                final long upperBound = Utils.getLongElementValue("upper_bound", jo);
+                final boolean hex = Utils.getBooleanElementValueOrDefault("hex", jo, false);
+
+                final RandomGenerator longGenerator = RandomGenerator.ofUniformLong(ColumnType.INT64, lowerBound, upperBound, seed, percentNull);
+                return new LongToStringDataGeneratorAdapter(longGenerator, hex);
+            }
+
             case TIMESTAMP_NANOS:
                 throw new IllegalArgumentException(String.format("%s: output type %s is not supported", fieldName, columnType));
             default:
@@ -450,7 +458,7 @@ public class RandomGenerator extends DataGenerator {
     }
 
 
-    static RandomGenerator fromJson(final String fieldName, final JSONObject jo) {
+    static DataGenerator fromJson(final String fieldName, final JSONObject jo) {
 
         final ColumnType columnType = DataGenerator.columnTypeFromJson(jo);
         final double percentNull = PercentNullManager.parseJson(fieldName, jo);

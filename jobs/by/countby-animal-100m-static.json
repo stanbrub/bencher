@@ -1,0 +1,51 @@
+{
+  "benchmarks": [
+    {
+      "title": "Do a countBy one column on 100m rows",
+      "generator_files": [ "relation-no-nulls-100m.json" ],
+      "benchmark": {
+        "statements" : [
+          {
+            "title" : "preamble",
+            "text" : [
+              "import time",
+              "import deephaven.ParquetTools as pt",
+              "tag = 'no-nulls-100m'",
+              "bench_name = 'countby-animal-static'"
+            ],
+            "timed" : 0
+          },
+
+          {
+            "title" : "load tables",
+            "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('animal_id')",
+            "timed" : 1
+          },
+
+          {
+            "title" : "setup metrics",
+            "file" : "before.py",
+            "timed" : 0
+          },
+
+          {
+            "title" : "perform countBy",
+            "text" : [
+              "time_start_ns = time.perf_counter_ns()",
+              "result = relation.countBy('count', 'animal_id')",
+              "time_end_ns = time.perf_counter_ns()",
+              "processed_rows = relation.size()"
+            ],
+            "timed" : 1
+          },
+
+          {
+            "title" : "post processing",
+            "file" : "after.py",
+            "timed" : 0
+          }
+        ]
+      }
+    }
+  ]
+}

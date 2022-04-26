@@ -1,0 +1,112 @@
+{
+  "format": "PARQUET",
+  "columns" : {
+    "Values" :
+    {
+      "generation_type": "full_range",
+      "type": "INT32",
+      "order": "Increasing",
+      "seed": "8675309",
+      "range_start": "1",
+      "range_stop": "100000000",
+      "percent_null": "0"
+    },
+    "adjective_id" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "643",
+      "type": "INT32",
+      "seed": "8675309",
+      "percent_null": "0"
+    },
+    "animal_id" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "249",
+      "type": "INT32",
+      "seed": "1239015897",
+      "percent_null": "5"
+    },
+    "word_id_one" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "10000",
+      "type": "INT32",
+      "seed": "1239015897",
+      "percent_null": "0"
+    },
+    "word_id_two" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "100000",
+      "type": "INT32",
+      "seed": "1239015897",
+      "percent_null": "0"
+    },
+
+    "id_1mm" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "1000000",
+      "type": "INT32",
+      "seed": "789123",
+      "percent_null": "0"
+    },
+
+    "animal_value" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "sets/animals.txt",
+      "random": "true",
+      "count": "100000000"
+    },
+
+    "adjective_value" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "sets/adjectives.txt",
+      "random": "true",
+      "count": "100000000"
+    },
+
+    "word_value_one" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "sets/10kwords-wordonly.txt",
+      "random": "true",
+      "count": "100000000"
+    },
+    "word_value_two" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "sets/100kwords-wordonly.txt",
+      "random": "true",
+      "count": "100000000"
+    },
+
+    "hex_1mm" :
+    {
+      "generation_type": "random",
+      "type": "STRING",
+      "seed": "23468923",
+      "lower_bound": "1",
+      "upper_bound": "1000000",
+      "percent_null": "0",
+      "hex": "true"
+    }
+  }
+}
+

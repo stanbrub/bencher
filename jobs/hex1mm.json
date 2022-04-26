@@ -1,0 +1,24 @@
+{
+  "format": "PARQUET",
+  "columns" : {
+    "intid" :
+      {
+        "generation_type": "full_range",
+        "type": "INT32",
+        "order": "Increasing",
+        "range_start": "1",
+        "range_stop": "1000000",
+        "percent_null": "0",
+	"seed": "0"
+      },
+    "hexid" :
+    {
+      "generation_type": "full_range",
+      "type": "STRING",
+      "range_start": "1",
+      "range_stop": "1000000",
+      "hex": "true",
+	"seed": "0"
+    }
+  }
+}

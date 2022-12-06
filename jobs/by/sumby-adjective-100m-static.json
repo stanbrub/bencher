@@ -15,7 +15,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'sumby-adjective-static'"
                   ],
@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'Values')"
+                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'Values')"
                   ],
                   "timed" : 1
               },

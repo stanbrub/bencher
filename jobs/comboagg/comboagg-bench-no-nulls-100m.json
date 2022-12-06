@@ -9,7 +9,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "from deephaven import Aggregation as agg, as_list",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'comboagg-bench-' + tag",
@@ -19,7 +19,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + tag + '.parquet').view('animal_id', 'adjective_id')",
+                  "text" : "relation = pt.read('/data/relation-' + tag + '.parquet').view('animal_id', 'adjective_id')",
                   "timed" : 1
               },
 

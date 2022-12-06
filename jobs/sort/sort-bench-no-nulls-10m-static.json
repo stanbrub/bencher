@@ -9,7 +9,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "tag = 'no-nulls-10m-static'",
                       "bench_name = 'sort-bench-' + tag"
                   ],
@@ -19,7 +19,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-no-nulls-100m.parquet').head(10000000)",
+                      "relation = pt.read('/data/relation-no-nulls-100m.parquet').head(10000000)",
                   ],
                   "timed" : 1
               },

@@ -15,7 +15,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'countby-manykeys-inc'"
                   ],
@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-            	      "relation = pt.readTable('/data/relation-manykeys-100m.parquet').select('key1')",
+            	      "relation = pt.read('/data/relation-manykeys-100m.parquet').select('key1')",
                       "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
                       "relation_filter = autotune(0, 1000000, 1.0, True)",
                       "relation_filtered = relation.where(relation_filter)"

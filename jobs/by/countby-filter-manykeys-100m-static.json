@@ -9,7 +9,7 @@
             "title" : "preamble",
             "text" : [
               "import time",
-              "import deephaven.ParquetTools as pt",
+              "import deephaven.parquet as pt",
               "tag = 'no-nulls-100m'",
               "bench_name = 'countby-filter-manykeys-static'"
             ],
@@ -18,7 +18,7 @@
 
           {
             "title" : "load tables",
-            "text" : "relation = pt.readTable('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
+            "text" : "relation = pt.read('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
             "timed" : 1
           },
 

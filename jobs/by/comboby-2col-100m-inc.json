@@ -15,7 +15,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'comboby-2col-inc'"
                   ],
@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'animal_id', 'Values')",
+                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'animal_id', 'Values')",
                       "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
                       "relation_filter = autotune(0, 1000000, 1.0, True)",
                       "relation_filtered = relation.where(relation_filter)"

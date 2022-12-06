@@ -9,7 +9,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'select-view-bench-' + tag"
                   ],
@@ -26,7 +26,7 @@
                   "title" : "read table into memory",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = pt.readTable('/data/relation-' + str(tag) + '.parquet').select()",
+                      "result = pt.read('/data/relation-' + str(tag) + '.parquet').select()",
                       "time_end_ns = time.perf_counter_ns()",
                       "processed_rows = result.size()"
                   ],

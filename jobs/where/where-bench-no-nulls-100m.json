@@ -9,7 +9,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
-                      "import deephaven.ParquetTools as pt",
+                      "import deephaven.parquet as pt",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'where-bench-' + tag",
                   ],
@@ -18,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.readTable('/data/relation-' + str(tag) + '.parquet')",
+                  "text" : "relation = pt.read('/data/relation-' + str(tag) + '.parquet')",
                   "timed" : 1
               },
 

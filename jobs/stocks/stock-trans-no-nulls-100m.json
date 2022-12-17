@@ -1,0 +1,42 @@
+{
+  "format": "PARQUET",
+  "columns" : {
+	"symbol" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "8675309",
+      "source_file": "jobs/stocks/100kstock-symbols.txt",
+      "random": "true",
+      "count": "100000000"
+    },
+    "price" :
+    {
+      "generation_type": "random",
+      "lower_bound": "100",
+      "upper_bound": "200",
+      "type": "INT32",
+      "seed": "8675309",
+      "percent_null": "0"
+    },
+    "buys" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "100",
+      "type": "INT32",
+      "seed": "8675309",
+      "percent_null": "0"
+    },
+	"sells" :
+    {
+      "generation_type": "random",
+      "lower_bound": "1",
+      "upper_bound": "100",
+      "type": "INT32",
+      "seed": "8675309",
+      "percent_null": "0"
+    }
+  }
+}
+

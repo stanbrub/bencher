@@ -1,0 +1,33 @@
+{
+  "format": "PARQUET",
+  "columns" : {
+    "symbol" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "jobs/stocks/100kstock-symbols.txt",
+      "random": "false",
+      "count": "100000"
+    },
+    "description" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "jobs/stocks/100kstock-descriptions.txt",
+      "random": "false",
+      "count": "100000"
+    },
+    "exchange" :
+    {
+      "generation_type": "file",
+      "type": "STRING",
+      "seed": "2347379",
+      "source_file": "jobs/stocks/10stock-exchanges.txt",
+      "random": "false",
+      "count": "100000"
+    }
+  }
+}
+

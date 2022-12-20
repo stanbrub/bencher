@@ -9,6 +9,7 @@
                   "title" : "preamble",
                   "text" : [
                       "import time",
+					  "import deephaven.parquet as pt",
                       "tag = 'no-nulls-no-by-1m-100m'",
                       "bench_name = 'select-aj-bench-' + tag",
                   ],
@@ -18,9 +19,8 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "from deephaven.ParquetTools import readTable", 
-                      "workqueue = readTable('/data/workqueue-no-nulls-100m.parquet').select()",
-                      "auditqueue = readTable('/data/auditqueue-no-nulls-1m.parquet').select()",
+                      "workqueue = pt.read('/data/workqueue-no-nulls-100m.parquet').select()",
+                      "auditqueue = pt.read('/data/auditqueue-no-nulls-1m.parquet').select()",
                   ],
                   "timed" : 1
               },
@@ -35,7 +35,7 @@
                   "title" : "perform aj",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = auditqueue.aj(workqueue, 'timestamp', 'work_timestamp = timestamp')",
+                      "result = auditqueue.aj(workqueue, on=['timestamp'], joins=['work_timestamp = timestamp'])",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

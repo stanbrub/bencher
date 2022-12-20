@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-            	      "relation = pt.read('/data/relation-manykeys-100m.parquet').select('key1', 'Values')"
+            	      "relation = pt.read('/data/relation-manykeys-100m.parquet').select(formulas=['key1', 'Values'])"
                   ],
                   "timed" : 1
               },
@@ -40,9 +40,9 @@
                   "title" : "perform sumBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sumBy('key1')",
+                      "result = relation.sum_by(by=['key1'])",
                       "time_end_ns = time.perf_counter_ns()",
-                      "processed_rows = relation.size()"
+                      "processed_rows = relation.size"
                   ],
                   "timed" : 1
               },

@@ -18,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select('animal_id', 'adjective_id')",
+                  "text" : "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select(formulas=['animal_id', 'adjective_id'])",
                   "timed" : 1
               },
 
@@ -32,7 +32,7 @@
                   "title" : "perform countBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.countBy('count', 'animal_id')",
+                      "result = relation.count_by('count', by=['animal_id'])",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

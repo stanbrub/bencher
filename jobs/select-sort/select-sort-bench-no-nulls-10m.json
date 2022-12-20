@@ -18,7 +18,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.read('/data/relation-' + str(tag) + '.parquet').head(10_000_000).view('animal_id', 'adjective_id').select()",
+                  "text" : "relation = pt.read('/data/relation-' + str(tag) + '.parquet').head(10_000_000).view(formulas=['animal_id', 'adjective_id']).select()",
                   "timed" : 1
               },
 
@@ -32,7 +32,7 @@
                   "title" : "perform sort over earlier computed select",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sort('animal_id', 'adjective_id')"
+                      "result = relation.sort(order_by=['animal_id', 'adjective_id'])"
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

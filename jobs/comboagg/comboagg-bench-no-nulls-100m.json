@@ -10,7 +10,7 @@
                   "text" : [
                       "import time",
                       "import deephaven.parquet as pt",
-                      "from deephaven import Aggregation as agg, as_list",
+                      "from deephaven import agg",
                       "tag = 'no-nulls-100m'",
                       "bench_name = 'comboagg-bench-' + tag",
                   ],
@@ -19,7 +19,7 @@
 
               {
                   "title" : "load tables",
-                  "text" : "relation = pt.read('/data/relation-' + tag + '.parquet').view('animal_id', 'adjective_id')",
+                  "text" : "relation = pt.read('/data/relation-' + tag + '.parquet').view(formulas=['animal_id', 'adjective_id'])",
                   "timed" : 1
               },
 
@@ -33,16 +33,16 @@
                   "title" : "perform ComboAgg",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.aggBy(as_list([\\",
-                      "  agg.AggSum('SumAdj=adjective_id'),\\",
-                      "  agg.AggMin('MinAdj=adjective_id'),\\",
-                      "  agg.AggMax('MaxAdj=adjective_id'),\\",
-                      "  agg.AggAvg('AvgAdj=adjective_id'),\\",
-                      "  agg.AggStd('StdAdj=adjective_id'),\\",
-                      "  agg.AggFirst('FirstAdj=adjective_id'),\\",
-                      "  agg.AggLast('LastAdj=adjective_id'),\\",
-                      "  agg.AggCount('CountAdj')\\",
-                      "]), 'animal_id')",
+                      "result = relation.agg_by([",
+                      "  agg.sum_('SumAdj=adjective_id'),",
+                      "  agg.min_('MinAdj=adjective_id'),",
+                      "  agg.max_('MaxAdj=adjective_id'),",
+                      "  agg.avg('AvgAdj=adjective_id'),",
+                      "  agg.std('StdAdj=adjective_id'),",
+                      "  agg.first('FirstAdj=adjective_id'),",
+                      "  agg.last('LastAdj=adjective_id'),",
+                      "  agg.count_('CountAdj')",
+                      "], by=['animal_id'])",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

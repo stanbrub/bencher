@@ -32,16 +32,17 @@
                   "title" : "perform update",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.update(\\",
-                      "  'vp1 = animal_id + adjective_id + 1',\\",
-                      "  'vp2 = animal_id + adjective_id + 2',\\",
-                      "  'vp3 = animal_id + adjective_id + 3',\\",
-                      "  'vp4 = animal_id + adjective_id + 4',\\",
-                      "  'vp5 = animal_id + adjective_id + 5',\\",
-                      "  'vp6 = animal_id + adjective_id + 6',\\",
-                      "  'vp7 = animal_id + adjective_id + 7',\\",
-                      "  'vp8 = animal_id + adjective_id + 8'\\",
-                      ")"
+					  "formulas = [",
+					  "  'vp1 = animal_id + adjective_id + 1',",
+                      "  'vp2 = animal_id + adjective_id + 2',",
+                      "  'vp3 = animal_id + adjective_id + 3',",
+                      "  'vp4 = animal_id + adjective_id + 4',",
+                      "  'vp5 = animal_id + adjective_id + 5',",
+                      "  'vp6 = animal_id + adjective_id + 6',",
+                      "  'vp7 = animal_id + adjective_id + 7',",
+                      "  'vp8 = animal_id + adjective_id + 8'",
+					  "]",
+                      "result = relation.update(formulas)",
                       "time_end_ns = time.perf_counter_ns()"
                   ],
                   "timed" : 1

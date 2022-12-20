@@ -1,7 +1,7 @@
-from deephaven import Aggregation as agg, as_list
+from deephaven import agg
 
-agg_list = as_list([\
-    agg.AggCount("Count"),\
-    agg.AggAvg("Avg = Values"),\
-    agg.AggStd("Std = Values"),\
-    ])
+agg_list = [
+    agg.count_("Count"),
+    agg.avg("Avg = Values"),
+    agg.std("Std = Values"),
+]

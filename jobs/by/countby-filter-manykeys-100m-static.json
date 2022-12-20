@@ -18,7 +18,7 @@
 
           {
             "title" : "load tables",
-            "text" : "relation = pt.read('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
+            "text" : "relation = pt.read('/data/relation-manykeys-100m.parquet').select(formulas=['key1', 'Values'])",
             "timed" : 1
           },
 
@@ -38,9 +38,9 @@
             "title" : "perform countBy",
             "text" : [
               "time_start_ns = time.perf_counter_ns()",
-              "result = relation.aggBy(agg_list, 'key1').where('Count % 2 == 1').dropColumns('Count', 'key1').sumBy()",
+              "result = relation.agg_by(agg_list, by=['key1']).where('Count % 2 == 1').drop_columns(cols=['Count', 'key1']).sum_by()",
               "time_end_ns = time.perf_counter_ns()",
-              "processed_rows = relation.size()"
+              "processed_rows = relation.size"
             ],
             "timed" : 1
           },

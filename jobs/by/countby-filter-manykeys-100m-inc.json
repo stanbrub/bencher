@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-            	      "relation = pt.read('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
+            	      "relation = pt.read('/data/relation-manykeys-100m.parquet').select(formulas=['key1', 'Values'])",
                       "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
                       "relation_filter = autotune(0, 1000000, 1.0, True)",
                       "relation_filtered = relation.where(relation_filter)"
@@ -48,7 +48,7 @@
               {
                   "title" : "initialize countBy",
                   "text" : [
-                      "result = relation_filtered.aggBy(agg_list, 'key1').where('Count % 2 == 1').dropColumns('Count', 'key1').sumBy()",
+                      "result = relation_filtered.agg_by(agg_list, by=['key1']).where('Count % 2 == 1').drop_columns(cols=['Count', 'key1']).sum_by()",
                       "relation_filter.start()",
 		      "UpdateGraphProcessor.DEFAULT.requestRefresh()"
                   ],
@@ -60,7 +60,7 @@
                   "text" : [
                       "relation_filter.waitForCompletion()",
                       "elapsed_benchmark_nanos = relation_filter.durationNanos()",
-                      "processed_rows = relation.size()"
+                      "processed_rows = relation.size"
                   ],
                   "timed" : 1
               },

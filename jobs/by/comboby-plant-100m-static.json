@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select('plant_id', 'Values')"
+                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select(formulas=['plant_id', 'Values'])"
                   ],
                   "timed" : 1
               },
@@ -46,9 +46,9 @@
                   "title" : "perform comboBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.aggBy(agg_list, 'plant_id')",
+                      "result = relation.agg_by(agg_list, by=['plant_id'])",
                       "time_end_ns = time.perf_counter_ns()",
-                      "processed_rows = relation.size()"
+                      "processed_rows = relation.size"
                   ],
                   "timed" : 1
               },

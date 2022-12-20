@@ -32,7 +32,7 @@
                   "title" : "perform countBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.view('animal_id', 'adjective_id').countBy('count', 'animal_id')",
+                      "result = relation.view(formulas=['animal_id', 'adjective_id']).count_by('count', by=['animal_id'])",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

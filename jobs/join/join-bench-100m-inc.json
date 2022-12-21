@@ -1,0 +1,73 @@
+{
+  "benchmarks": [
+    {
+      "title": "Join 100m animals and adjectives",
+      "generator_files": [ "animals.json", "adjectives.json", "relation-100m.json" ],
+      "benchmark": {
+          "statements" : [
+              {
+                  "title" : "preamble",
+                  "text" : [
+                      "import time",
+					  "from deephaven import parquet as pt",
+                      "tag = '100m'",
+                      "bench_name = 'join-bench-' + tag",
+                  ],
+                  "timed" : 0
+              },
+			  
+			  {
+                  "title" : "load tables 1",
+                  "file" : "common-tables.py",
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "load tables 2",
+                  "text" : [
+                      "relation = relation.select()",
+                      "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
+                      "relation_filter = autotune(0, 1000000, 1.0, True)",
+                      "relation_filtered = relation.where(relation_filter)"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "setup metrics",
+                  "file" : "before.py",
+                  "timed" : 0
+              },
+
+              {
+                  "title" : "perform join",
+                  "text" : [
+                      "time_start_ns = time.perf_counter_ns()",
+                      "result = relation.natural_join(adjectives, on=['adjective_id']).join(animals, on=['animal_id']).view(formulas=['Values', 'adjective_name', 'animal_name'])",
+					  "relation_filter.start()",
+		              "UpdateGraphProcessor.DEFAULT.requestRefresh()"
+                      "time_end_ns = time.perf_counter_ns()",
+                  ],
+                  "timed" : 1
+              },
+			  
+			  {
+                  "title" : "complete join",
+                  "text" : [
+                      "relation_filter.waitForCompletion()",
+                      "elapsed_benchmark_nanos = relation_filter.durationNanos()",
+                      "processed_rows = relation.size"
+                  ],
+                  "timed" : 1
+              },
+
+              {
+                  "title" : "post processing",
+                  "file" : "after.py",
+                  "timed" : 0
+              }
+          ]
+      }
+    }
+  ]
+}

@@ -19,7 +19,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.read('/data/relation-no-nulls-100m.parquet').head(10000000)"
+                      "relation = pt.read('/data/relation-no-nulls-10m.parquet')"
                   ],
                   "timed" : 1
               },
@@ -35,9 +35,9 @@
                   "text" : [
                       "processed_rows = 0",
                       "time_start_ns = time.perf_counter_ns()",
-                      "for headSz in range(0, relation.size(), 500000):",
+                      "for headSz in range(0, relation.size, 500000):",
                       "     result = relation.head(headSz).sort('animal_id')",
-                      "     processed_rows += result.size()",
+                      "     processed_rows += result.size",
                       "time_end_ns = time.perf_counter_ns()"
                   ],
                   "timed" : 1

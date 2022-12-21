@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.read('/data/relation-no-nulls-100m.parquet').head(10000000)",
+                      "relation = pt.read('/data/relation-no-nulls-10m.parquet')",
                       "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
                       "relation_filter = autotune(0, 1000000, 1.0, True)",
                       "relation_filtered = relation.where(relation_filter)"
@@ -53,7 +53,7 @@
                   "text" : [
                       "relation_filter.waitForCompletion()",
                       "elapsed_benchmark_nanos = relation_filter.durationNanos()",
-                      "processed_rows = result.size()"
+                      "processed_rows = result.size"
                   ],
                   "timed" : 1
               },

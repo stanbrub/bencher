@@ -2,7 +2,7 @@
   "benchmarks": [
     {
       "title": "Join 100m animal",
-      "generator_files": [ "100kwords.json", "animals.json", "adjectives.json", "animals.json", "relation-join.json" ],
+      "generator_files": [ "100kwords.json", "animals.json", "adjectives.json", "10kwords.json", "relation-join.json", "hex1mm.json" ],
       "benchmark": {
           "statements" : [
               {

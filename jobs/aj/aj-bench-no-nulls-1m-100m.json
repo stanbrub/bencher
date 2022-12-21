@@ -18,9 +18,9 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "from deephaven.ParquetTools import readTable", 
-                      "workqueue = readTable('/data/workqueue-no-nulls-100m.parquet')",
-                      "auditqueue = readTable('/data/auditqueue-no-nulls-1m.parquet')",
+                      "from deephaven.parquet import read", 
+                      "workqueue = read('/data/workqueue-no-nulls-100m.parquet')",
+                      "auditqueue = read('/data/auditqueue-no-nulls-1m.parquet')",
                   ],
                   "timed" : 1
               },
@@ -35,7 +35,7 @@
                   "title" : "perform aj",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = auditqueue.aj(workqueue, 'user_id, timestamp', 'work_timestamp = timestamp')",
+                      "result = auditqueue.aj(workqueue, on=['user_id', 'timestamp'], joins=['work_timestamp = timestamp'])",
                       "time_end_ns = time.perf_counter_ns()",
                   ],
                   "timed" : 1

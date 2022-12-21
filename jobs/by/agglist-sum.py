@@ -1,6 +1,6 @@
-from deephaven import Aggregation as agg, as_list
+from deephaven import agg
 
-agg_list = as_list([\
-    agg.AggCount("Count"),\
-    agg.AggSum("Sum = Values"),\
-    ])
+agg_list = [
+    agg.count_("Count"),
+    agg.sum_("Sum = Values"),
+]

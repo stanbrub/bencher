@@ -19,7 +19,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.read('/data/relation-no-nulls-100m.parquet').head(10000000)",
+                      "relation = pt.read('/data/relation-no-nulls-10m.parquet')",
                   ],
                   "timed" : 1
               },
@@ -36,7 +36,7 @@
                       "time_start_ns = time.perf_counter_ns()",
                       "result = relation.sort('animal_id')",
                       "time_end_ns = time.perf_counter_ns()",
-                      "processed_rows = result.size()"
+                      "processed_rows = result.size"
                   ],
                   "timed" : 1
               },

@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select('animal_id')",
+                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select(formulas=['animal_id'])",
                       "autotune = jpy.get_type('io.deephaven.engine.table.impl.select.AutoTuningIncrementalReleaseFilter')",
                       "relation_filter = autotune(0, 1000000, 1.0, True)",
                       "relation_filtered = relation.where(relation_filter)"
@@ -42,7 +42,7 @@
               {
                   "title" : "initialize sumBy",
                   "text" : [
-                      "result = relation_filtered.countBy('count', 'animal_id')",
+                      "result = relation_filtered.count_by('count', by=['animal_id'])",
                       "relation_filter.start()",
 		      "UpdateGraphProcessor.DEFAULT.requestRefresh()"
                   ],
@@ -54,7 +54,7 @@
                   "text" : [
                       "relation_filter.waitForCompletion()",
                       "elapsed_benchmark_nanos = relation_filter.durationNanos()",
-                      "processed_rows = relation.size()"
+                      "processed_rows = relation.size"
                   ],
                   "timed" : 1
               },

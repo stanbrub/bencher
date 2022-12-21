@@ -18,7 +18,7 @@
 
           {
             "title" : "load tables",
-            "text" : "relation = pt.read('/data/relation-manykeys-100m.parquet').select('key1', 'Values')",
+            "text" : "relation = pt.read('/data/relation-manykeys-100m.parquet').select(formulas=['key1', 'Values'])",
             "timed" : 1
           },
 
@@ -44,7 +44,7 @@
             "title" : "perform countBy",
             "text" : [
 	      "def applyCount(rel):",
-              "     result = rel.aggBy(agg_list, 'key1').where('Count % 2 == 1').dropColumns('Count', 'key1').sumBy()",
+              "     result = rel.agg_by(agg_list, by=['key1']).where('Count % 2 == 1').drop_columns(cols=['Count', 'key1']).sum_by()",
 	      "doRepeat(relation, 3500000, applyCount)"
             ],
             "timed" : 1

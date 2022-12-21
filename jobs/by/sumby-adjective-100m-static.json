@@ -25,7 +25,7 @@
               {
                   "title" : "load tables",
                   "text" : [
-                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select('adjective_id', 'Values')"
+                      "relation = pt.read('/data/relation-' + str(tag) + '.parquet').select(formulas=['adjective_id', 'Values'])"
                   ],
                   "timed" : 1
               },
@@ -40,9 +40,9 @@
                   "title" : "perform sumBy",
                   "text" : [
                       "time_start_ns = time.perf_counter_ns()",
-                      "result = relation.sumBy('adjective_id')",
+                      "result = relation.sum_by(by=['adjective_id'])",
                       "time_end_ns = time.perf_counter_ns()",
-                      "processed_rows = relation.size()"
+                      "processed_rows = relation.size"
                   ],
                   "timed" : 1
               },
